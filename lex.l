@@ -1,6 +1,8 @@
 %option noyywrap
 %{
 #include <stdio.h>
+#include "y.tab.h"
+void yyerror(char *s);
 %}
 FN fn
 MAIN main
@@ -26,35 +28,34 @@ IDENTIFIER [a-zA-Z][a-zA-Z0-9_]*|_[a-zA-Z0-9_]+
 DIGIT	[0-9]
 DIGITS	{DIGIT}+
 OP_FRACTION	(\.{DIGITS})?
-OP_EXPONENT	([Ee][+-]?{DIGITS})?
-NUMBER	{DIGITS}{OP_FRACTION}{OP_EXPONENT}
+NUMBER	{DIGITS}{OP_FRACTION}
 STRING \".*\"
 ARITH_OPERATOR [+\-\/\*\%]
 ASSIGN \=
 RELATIONAL (\=\=|\!\=|>|<|>\=|<\=)
 %%
 \n {;}
-{STMT_TERMINATOR} {;}
-{FN} {printf("fn\n");};
-{MAIN} {printf("main\n");};
-{OPEN_BLOCK} {printf("Block open\n");}
-{CLOSE_BLOCK} {printf("Block closed\n");}
-{OPEN_PARANTHESIS} {printf("Parenthesis open\n");}
-{CLOSE_PARANTHESIS} {printf("Parenthesis closed\n");}
-{OPEN_SQUARE} {printf("Square brackets open\n");}
-{CLOSE_SQUARE} {printf("Square brackets closed\n");}
-{COMMA} {printf(",");}
-{ASSIGN} {printf("Assignment\n");}
-{RELATIONAL} {printf("Relational Operator\n");}
-{ARITH_OPERATOR} {printf("Arithmetic Operator\n");}
-{BREAK} {printf("Break\n");}
-{CONTINUE} {printf("Continue\n");}
-{FOR} {printf("For\n");}
-{IN} {printf("In\n");}
-{LET} {printf("let\n");}
-{MUT} {printf("mut\n");}
-{WHILE} {printf("While\n");}
-{PRINTLN} {printf("println!\n");}
-{IDENTIFIER} {printf("Identifier\n");}
-{NUMBER} {printf("Number\n");}
-{STRING} {printf("String\n");}
+{STMT_TERMINATOR} { return ST;}
+{FN} {return FN;}
+{MAIN} {return MAIN;}
+{OPEN_BLOCK} {return OB;}
+{CLOSE_BLOCK} {return CB;}
+{OPEN_PARANTHESIS} {return OP;}
+{CLOSE_PARANTHESIS} {return CP;}
+{OPEN_SQUARE} {return OS;}
+{CLOSE_SQUARE} {return CS;}
+{COMMA} {return COM;}
+{ASSIGN} {return ASSIGN;}
+{RELATIONAL} {return RELATIONAL;}
+{ARITH_OPERATOR} {return AOPERATOR;}
+{BREAK} {return BREAK;}
+{CONTINUE} {return CONTINUE;}
+{FOR} {return FOR;}
+{IN} {return IN;}
+{LET} {return LET;}
+{MUT} {return MUT;}
+{WHILE} {return WHILE;}
+{PRINTLN} {return PRINTLN;}
+{IDENTIFIER} {return IDENTIFIER;}
+{NUMBER} {return NUMBER;}
+{STRING} {return STRING;}
