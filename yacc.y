@@ -12,11 +12,19 @@ Statement    : Decl | Assignment | ST | %empty
         ; 
 Decl    : LET MUT x ST Statement
         ;
-x       : IDENTIFIER | IDENTIFIER ASSIGN NUMBER | IDENTIFIER ASSIGN STRING
+x       : IDENTIFIER | IDENTIFIER ASSIGN NUMBER | IDENTIFIER ASSIGN STRING 
+        | IDENTIFIER ASSIGN IDENTIFIER | IDENTIFIER ASSIGN Expr
         ;
 Assignment  : IDENTIFIER ASSIGN y ST Statement
             ;
-y       : NUMBER | STRING
+y       : NUMBER | STRING | IDENTIFIER | Expr
+        ;
+Expr    : ArithExpr
+        ;
+ArithExpr    : z  | z AOPERATOR ArithExpr | OP ArithExpr CP 
+                | ArithExpr AOPERATOR ArithExpr
+        ;
+z       : IDENTIFIER | NUMBER
         ;
 %%
 void yyerror(char *s)
@@ -25,6 +33,9 @@ printf("%s\n",s);
 }
 int main()
 {
+// #ifdef YYDEBUG
+// yydebug = 1;
+// #endif
 yyparse();
 return 0;
 }
