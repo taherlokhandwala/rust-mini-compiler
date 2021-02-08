@@ -7,8 +7,8 @@ void yyerror(char *s);
 %%
 Prog	: FN MAIN OP CP OB Statement CB
         {printf("Valid\n"); YYACCEPT;} 
-	    ;
-Statement    : Decl | Assignment | ST | %empty
+	;
+Statement   : Decl | Assignment | ST | %empty
         ; 
 Decl    : LET MUT x ST Statement
         ;
@@ -16,13 +16,17 @@ x       : IDENTIFIER | IDENTIFIER ASSIGN NUMBER | IDENTIFIER ASSIGN STRING
         | IDENTIFIER ASSIGN IDENTIFIER | IDENTIFIER ASSIGN Expr
         ;
 Assignment  : IDENTIFIER ASSIGN y ST Statement
-            ;
+        ;
 y       : NUMBER | STRING | IDENTIFIER | Expr
         ;
-Expr    : ArithExpr
+Expr    : ArithExpr | RelExpr
         ;
 ArithExpr    : z  | z AOPERATOR ArithExpr | OP ArithExpr CP 
                 | ArithExpr AOPERATOR ArithExpr
+        ;
+RelExpr : a | a RELATIONAL RelExpr | OP RelExpr CP | RelExpr RELATIONAL RelExpr
+        ;
+a       : NUMBER | STRING | IDENTIFIER | ArithExpr
         ;
 z       : IDENTIFIER | NUMBER
         ;
