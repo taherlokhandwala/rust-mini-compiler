@@ -3,32 +3,74 @@
 int yylex();
 void yyerror(char *s);
 %}
-%token FN MAIN BREAK CONTINUE FOR IN WHILE LET MUT TRUE FALSE PRINTLN ST OB CB OP CP OS CS IDENTIFIER NUMBER STRING AOPERATOR ASSIGN RELATIONAL COM
+
+%token FN 
+%token MAIN 
+%token BREAK 
+%token CONTINUE 
+%token FOR 
+%token IN 
+%token WHILE 
+%token LET 
+%token MUT 
+%token TRUE 
+%token FALSE 
+%token PRINTLN 
+%token ST 
+%token OB 
+%token CB 
+%token OP 
+%token CP 
+%token OS 
+%token CS 
+%token IDENTIFIER 
+%token NUMBER 
+%token STRING 
+%token PLUS 
+%token MINUS 
+%token MUL 
+%token DIVIDE 
+%token ASSIGN 
+%token LESS_THAN
+%token LESS_OR_EQUAL
+%token GREATER_THAN
+%token GREATER_OR_EQUAL
+%token EQUALS
+%token NOT_EQUALS 
+%token COM 
+%token LOGICAL
+
 %%
 Prog	: FN MAIN OP CP OB Statement CB
         {printf("Valid\n"); YYACCEPT;} 
 	;
-Statement   : Decl | Assignment | ST | %empty
+Statement   : Decl | Assignment | ForLoop | WhileLoop | ST | %empty
         ; 
 Decl    : LET MUT x ST Statement
         ;
-x       : IDENTIFIER | IDENTIFIER ASSIGN NUMBER | IDENTIFIER ASSIGN STRING 
-        | IDENTIFIER ASSIGN IDENTIFIER | IDENTIFIER ASSIGN Expr
+x       : IDENTIFIER | IDENTIFIER ASSIGN w
         ;
-Assignment  : IDENTIFIER ASSIGN y ST Statement
+w       : STRING | Expr 
         ;
-y       : NUMBER | STRING | IDENTIFIER | Expr
+Assignment  : IDENTIFIER ASSIGN w ST Statement
         ;
-Expr    : ArithExpr | RelExpr
+Expr:   AddExpr Relop AddExpr | AddExpr
         ;
-ArithExpr    : z  | z AOPERATOR ArithExpr | OP ArithExpr CP 
-                | ArithExpr AOPERATOR ArithExpr
+Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
-RelExpr : a | a RELATIONAL RelExpr | OP RelExpr CP | RelExpr RELATIONAL RelExpr
+AddExpr: AddExpr Addop Term | Term
         ;
-a       : NUMBER | STRING | IDENTIFIER | ArithExpr
+Addop: PLUS | MINUS
         ;
-z       : IDENTIFIER | NUMBER
+Term: Term Mulop Factor | Factor
+        ;
+Mulop: MUL | DIVIDE
+        ;
+Factor: OP Expr CP | IDENTIFIER | NUMBER;
+        ;
+ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB
+        ;
+WhileLoop : WHILE Expr OB Statement CB
         ;
 %%
 void yyerror(char *s)

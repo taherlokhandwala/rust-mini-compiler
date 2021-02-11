@@ -30,9 +30,18 @@ DIGITS	{DIGIT}+
 OP_FRACTION	(\.{DIGITS})?
 NUMBER	{DIGITS}{OP_FRACTION}
 STRING \".*\"
-ARITH_OPERATOR [+\-\/\*\%]
+PLUS \+
+MINUS \-
+MUL \*
+DIVIDE \/
+LOGICAL_OPERATOR (\|\||&&)
 ASSIGN \=
-RELATIONAL (\=\=|\!\=|>|<|>\=|<\=)
+EQUALS \=\=
+NOT_EQUALS \!\=
+GREATER_THAN >
+LESS_THAN <
+GREATER_OR_EQUAL >\=
+LESS_OR_EQUAL <\=
 %%
 \n {;}
 {STMT_TERMINATOR} { return ST;}
@@ -46,8 +55,17 @@ RELATIONAL (\=\=|\!\=|>|<|>\=|<\=)
 {CLOSE_SQUARE} {return CS;}
 {COMMA} {return COM;}
 {ASSIGN} {return ASSIGN;}
-{RELATIONAL} {return RELATIONAL;}
-{ARITH_OPERATOR} {return AOPERATOR;}
+{EQUALS} {return EQUALS;}
+{NOT_EQUALS} {return NOT_EQUALS;}
+{GREATER_THAN} {return GREATER_THAN;}
+{LESS_THAN} {return LESS_THAN;}
+{GREATER_OR_EQUAL} {return GREATER_OR_EQUAL;}
+{LESS_OR_EQUAL} {return EQUALS;}
+{LOGICAL_OPERATOR} {return LOGICAL;}
+{PLUS} {return PLUS;}
+{MINUS} {return MINUS;}
+{MUL} {return MUL;}
+{DIVIDE} {return DIVIDE;}
 {BREAK} {return BREAK;}
 {CONTINUE} {return CONTINUE;}
 {FOR} {return FOR;}
