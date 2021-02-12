@@ -44,17 +44,23 @@ void yyerror(char *s);
 Prog	: FN MAIN OP CP OB Statement CB
         {printf("Valid\n"); YYACCEPT;} 
 	;
-Statement   : Decl | Assignment | ForLoop | WhileLoop | ST | %empty
+Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
 Decl    : LET MUT x ST Statement
         ;
 x       : IDENTIFIER | IDENTIFIER ASSIGN w
         ;
-w       : STRING | Expr 
+w       : STRING | Array | Expr 
+        ;
+Array   : OS Args CS
+        ;
+Args    : w | Args COM w
         ;
 Assignment  : IDENTIFIER ASSIGN w ST Statement
         ;
-Expr:   AddExpr Relop AddExpr | AddExpr
+Expr:   AddExpr Relop AddExpr | AddExpr | Bool
+        ;
+Bool : TRUE | FALSE
         ;
 Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
@@ -71,6 +77,16 @@ Factor: OP Expr CP | IDENTIFIER | NUMBER;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB
         ;
 WhileLoop : WHILE Expr OB Statement CB
+        ;
+Break   : BREAK ST Statement
+        ;
+Continue   : CONTINUE ST Statement
+        ;
+Print   : PRINTLN OP STRING c CP ST Statement
+        ;
+c       : COM ListVars | %empty   
+        ;
+ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
 void yyerror(char *s)
