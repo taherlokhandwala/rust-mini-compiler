@@ -2,3 +2,5 @@ y.tab.c
 y.tab.h
 a.out
 lex.yy.c
+y.output
+symtab.txt
