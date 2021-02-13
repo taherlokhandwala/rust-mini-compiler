@@ -1,8 +1,21 @@
 %{
-#include<stdio.h>
-int yylex();
-void yyerror(char *s);
+    #include <stdlib.h>
+	#include <stdio.h>
+	#include "symboltable.h"
+
+	entry_t** symbol_table;
+    entry_t** constant_table;
+
+	//double Evaluate (double lhs_value,int assign_type,double rhs_value);
+	//int current_dtype;
+	int yyerror(char *msg);
+    int yylex();
 %}
+
+%union
+{
+	entry_t* entry;
+}
 
 %token FN 
 %token MAIN 
@@ -23,7 +36,7 @@ void yyerror(char *s);
 %token CP 
 %token OS 
 %token CS 
-%token IDENTIFIER 
+%token <entry> IDENTIFIER 
 %token NUMBER 
 %token STRING 
 %token PLUS 
@@ -56,7 +69,7 @@ Array   : OS Args CS
         ;
 Args    : w | Args COM w
         ;
-Assignment  : IDENTIFIER ASSIGN w ST Statement
+Assignment  : IDENTIFIER ASSIGN w ST Statement //{yylval.entry = insert(symbol_table, $1, $3);}
         ;
 Expr:   AddExpr Relop AddExpr | AddExpr | Bool
         ;
@@ -89,15 +102,47 @@ c       : COM ListVars | %empty
 ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
-void yyerror(char *s)
+
+#include "lex.yy.c"
+#include <ctype.h>
+
+/*
+double Evaluate (double lhs_value,int assign_type,double rhs_value)
 {
-printf("%s\n",s);
+	switch(assign_type)
+	{
+		case '=': return rhs_value;
+		case ADD_ASSIGN: return (lhs_value + rhs_value);
+		case SUB_ASSIGN: return (lhs_value - rhs_value);
+		case MUL_ASSIGN: return (lhs_value * rhs_value);
+		case DIV_ASSIGN: return (lhs_value / rhs_value);
+		case MOD_ASSIGN: return ((int)lhs_value % (int)rhs_value);
+	}
 }
-int main()
+*/
+
+int main(int argc, char *argv[])
 {
-// #ifdef YYDEBUG
-// yydebug = 1;
-// #endif
-yyparse();
-return 0;
+	symbol_table = create_table();
+	constant_table = create_table();
+
+	yyin = fopen(argv[1], "r");
+
+	if(!yyparse()){
+		printf("\nParsing complete\n");
+	}
+	else{
+		printf("\nParsing failed\n");
+	}
+
+	printf("\n\tSymbol table");
+	display(symbol_table);
+
+	fclose(yyin);
+	return 0;
+}
+
+int yyerror(char *msg){
+	printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
+	return 0;
 }

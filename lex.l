@@ -2,7 +2,7 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
-void yyerror(char *s);
+int yyerror(char *s);
 %}
 FN fn
 MAIN main
@@ -74,6 +74,6 @@ LESS_OR_EQUAL <\=
 {MUT} {return MUT;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
-{IDENTIFIER} {return IDENTIFIER;}
+{IDENTIFIER} { yylval.entry = insert(symbol_table, yytext, INT_MAX); return IDENTIFIER;}
 {NUMBER} {return NUMBER;}
 {STRING} {return STRING;}
