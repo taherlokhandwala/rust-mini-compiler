@@ -6,8 +6,6 @@
 	entry_t** symbol_table;
     entry_t** constant_table;
 
-	//double Evaluate (double lhs_value,int assign_type,double rhs_value);
-	//int current_dtype;
 	int yyerror(char *msg);
     int yylex();
 %}
@@ -105,21 +103,6 @@ ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
 
 #include "lex.yy.c"
 #include <ctype.h>
-
-/*
-double Evaluate (double lhs_value,int assign_type,double rhs_value)
-{
-	switch(assign_type)
-	{
-		case '=': return rhs_value;
-		case ADD_ASSIGN: return (lhs_value + rhs_value);
-		case SUB_ASSIGN: return (lhs_value - rhs_value);
-		case MUL_ASSIGN: return (lhs_value * rhs_value);
-		case DIV_ASSIGN: return (lhs_value / rhs_value);
-		case MOD_ASSIGN: return ((int)lhs_value % (int)rhs_value);
-	}
-}
-*/
 
 int main(int argc, char *argv[])
 {
