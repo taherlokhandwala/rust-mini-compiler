@@ -34,11 +34,10 @@ sym_table* init_row(sym_table* table){
 }
 
 int insert(sym_table* table, char* name, char* value, char* data_type, char* token){   
-        if(!table->count_rows)
+		if(!table->count_rows)
             init_row(table);
         else{
-            for(int i=0;i<table->count_rows+1;i++){
-                printf("hello\n");
+            for(int i=0;i<table->count_rows;i++){
     			if (!strcmp(table->node[i].name,name) && !strcmp(table->node[i].data_type,data_type))
     				return 0;
 		    }
@@ -54,24 +53,24 @@ int insert(sym_table* table, char* name, char* value, char* data_type, char* tok
 
 void display(sym_table* table) {
 
-	printf("\n====================================================\n");
+	printf("\n============================================================================================\n");
 	printf(" %-20s %-20s %-20s %-20s\n", "name", "value", "data-type", "token");
-	printf("====================================================\n");
+	printf("============================================================================================\n");
 
 	for (int i = 0; i < table->count_rows; i++) {
 		printf(" %-20s %-20s %-20s %-20s \n", table->node[i].name, table->node[i].value, table->node[i].data_type, table->node[i].token);
 	}
-	printf("====================================================\n");
+	printf("============================================================================================\n");
 
 	FILE *fptr;
 	fptr = fopen("./symtab.txt", "w");
-	fprintf(fptr, "\n====================================================\n");
+	fprintf(fptr, "\n============================================================================================\n");
 	fprintf(fptr, " %-20s %-20s %-20s %-20s\n", "name", "value", "data-type", "token");
-	fprintf(fptr, "====================================================\n");
+	fprintf(fptr, "============================================================================================\n");
 
 	for (int i = 0; i < table->count_rows; i++) {
 		fprintf(fptr, " %-20s %-20s %-20s %-20s \n", table->node[i].name, table->node[i].value, table->node[i].data_type, table->node[i].token);
 	}
-	fprintf(fptr, "====================================================\n");
+	fprintf(fptr, "=======================================================================\n");
 	fclose(fptr);
 }

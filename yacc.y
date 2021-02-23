@@ -1,6 +1,7 @@
 %{
         #include <stdlib.h>
 	#include <stdio.h>
+        #define YYSTYPE char *
 	#include "symboltable.h"
 
 	sym_table* table;
@@ -9,10 +10,6 @@
         int yylex();
 %}
 
-%union
-{
-	sym_table* entry;
-}
 
 %token FN 
 %token MAIN 
@@ -33,7 +30,8 @@
 %token CP 
 %token OS 
 %token CS 
-%token <entry> IDENTIFIER 
+%token IDENTIFIER 
+%token I32
 %token NUMBER 
 %token STRING 
 %token PLUS 
@@ -51,14 +49,12 @@
 %token LOGICAL
 
 %%
-Prog	: FN MAIN OP CP OB Statement CB
+Prog	: FN MAIN OP CP OB Statement CB 
         {printf("Valid\n"); YYACCEPT;} 
 	;
 Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
-Decl    : LET MUT x ST Statement
-        ;
-x       : IDENTIFIER | IDENTIFIER ASSIGN w
+Decl    : LET MUT IDENTIFIER ASSIGN w ST Statement {insert(table,$3,$5,"i32","Identifier");}
         ;
 w       : STRING | Array | Expr 
         ;
@@ -66,7 +62,7 @@ Array   : OS Args CS
         ;
 Args    : w | Args COM w
         ;
-Assignment  : IDENTIFIER ASSIGN w ST Statement //{yylval.entry = insert(symbol_table, $1, $3);}
+Assignment  : IDENTIFIER ASSIGN w ST Statement 
         ;
 Expr:   AddExpr Relop AddExpr | AddExpr | Bool
         ;
@@ -82,7 +78,7 @@ Term: Term Mulop Factor | Factor
         ;
 Mulop: MUL | DIVIDE
         ;
-Factor: OP Expr CP | IDENTIFIER | NUMBER;
+Factor: OP Expr CP | IDENTIFIER | NUMBER | I32;
         ;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB
         ;

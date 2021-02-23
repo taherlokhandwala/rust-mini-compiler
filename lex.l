@@ -74,6 +74,7 @@ LESS_OR_EQUAL <\=
 {MUT} {return MUT;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
-{IDENTIFIER} { yylval.entry = insert(table, yytext, "INT_MAX", "INT_MAX", "INT_MAX"); return IDENTIFIER;}
-{NUMBER} {return NUMBER;}
-{STRING} {return STRING;}
+{IDENTIFIER} {yylval = strdup(yytext);return IDENTIFIER;}
+{DIGITS} {yylval = strdup(yytext);return I32;}
+{NUMBER} {yylval = strdup(yytext);return NUMBER;}
+{STRING} {yylval = strdup(yytext);return STRING;}
