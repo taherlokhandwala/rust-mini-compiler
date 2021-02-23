@@ -1,18 +1,17 @@
 %{
-    #include <stdlib.h>
+        #include <stdlib.h>
 	#include <stdio.h>
 	#include "symboltable.h"
 
-	entry_t** symbol_table;
-    entry_t** constant_table;
+	sym_table* table;
 
 	int yyerror(char *msg);
-    int yylex();
+        int yylex();
 %}
 
 %union
 {
-	entry_t* entry;
+	sym_table* table;
 }
 
 %token FN 
@@ -34,7 +33,7 @@
 %token CP 
 %token OS 
 %token CS 
-%token <entry> IDENTIFIER 
+%token IDENTIFIER 
 %token NUMBER 
 %token STRING 
 %token PLUS 
@@ -106,8 +105,7 @@ ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
 
 int main(int argc, char *argv[])
 {
-	symbol_table = create_table();
-	constant_table = create_table();
+	table = init_table();
 
 	yyin = fopen(argv[1], "r");
 
@@ -119,7 +117,7 @@ int main(int argc, char *argv[])
 	}
 
 	printf("\n\tSymbol table");
-	display(symbol_table);
+	display(table);
 
 	fclose(yyin);
 	return 0;
