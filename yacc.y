@@ -11,7 +11,7 @@
 
 %union
 {
-	sym_table* table;
+	sym_table* entry;
 }
 
 %token FN 
@@ -33,7 +33,7 @@
 %token CP 
 %token OS 
 %token CS 
-%token IDENTIFIER 
+%token <entry> IDENTIFIER 
 %token NUMBER 
 %token STRING 
 %token PLUS 
