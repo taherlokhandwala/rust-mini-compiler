@@ -11,6 +11,7 @@ typedef struct row {
 	char* value;
 	char* data_type;
 	char* token;
+	int scope;
 } sym_row;
 
 typedef struct table{
@@ -30,10 +31,11 @@ sym_table* init_row(sym_table* table){
 	table->node[table->count_rows].data_type = "null";
 	table->node[table->count_rows].value = "null";
 	table->node[table->count_rows].token = "null";
+	table->node[table->count_rows].scope = 0;
 	return table;
 }
 
-int insert(sym_table* table, char* name, char* value, char* data_type, char* token){   
+int insert(sym_table* table, char* name, char* value, char* data_type, char* token, int scope){   
 		if(!table->count_rows)
             init_row(table);
         else{
@@ -47,6 +49,7 @@ int insert(sym_table* table, char* name, char* value, char* data_type, char* tok
 		table->node[table->count_rows].value = value;
 		table->node[table->count_rows].data_type = data_type;
 		table->node[table->count_rows].token = token;
+		table->node[table->count_rows].scope = scope;
         table->count_rows++;
 		return 0;
 }
@@ -54,11 +57,11 @@ int insert(sym_table* table, char* name, char* value, char* data_type, char* tok
 void display(sym_table* table) {
 
 	printf("\n============================================================================================\n");
-	printf(" %-20s %-20s %-20s %-20s\n", "name", "value", "data-type", "token");
+	printf(" %-20s %-20s %-20s %-20s %-20s\n", "name", "value", "data-type", "token", "scope");
 	printf("============================================================================================\n");
 
 	for (int i = 0; i < table->count_rows; i++) {
-		printf(" %-20s %-20s %-20s %-20s \n", table->node[i].name, table->node[i].value, table->node[i].data_type, table->node[i].token);
+		printf(" %-20s %-20s %-20s %-20s %-20d\n", table->node[i].name, table->node[i].value, table->node[i].data_type, table->node[i].token, table->node[i].scope);
 	}
 	printf("============================================================================================\n");
 

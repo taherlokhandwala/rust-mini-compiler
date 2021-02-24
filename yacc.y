@@ -32,6 +32,8 @@
 %token CS 
 %token IDENTIFIER 
 %token I32
+%token F32
+%token STR
 %token NUMBER 
 %token STRING 
 %token PLUS 
@@ -46,6 +48,7 @@
 %token EQUALS
 %token NOT_EQUALS 
 %token COM 
+%token COLON
 %token LOGICAL
 
 %%
@@ -54,7 +57,9 @@ Prog	: FN MAIN OP CP OB Statement CB
 	;
 Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
-Decl    : LET MUT IDENTIFIER ASSIGN w ST Statement {insert(table,$3,$5,"i32","Identifier");}
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$3,$7,$5,"Identifier",scope_ret());}
+        ;
+Type    : I32 | F32 | STR
         ;
 w       : STRING | Array | Expr 
         ;
@@ -80,9 +85,9 @@ Mulop: MUL | DIVIDE
         ;
 Factor: OP Expr CP | IDENTIFIER | NUMBER | I32;
         ;
-ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB
+ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
         ;
-WhileLoop : WHILE Expr OB Statement CB
+WhileLoop : WHILE Expr OB Statement CB Statement
         ;
 Break   : BREAK ST Statement
         ;
@@ -120,6 +125,6 @@ int main(int argc, char *argv[])
 }
 
 int yyerror(char *msg){
-	//printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
+	printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
 	return 0;
 }
