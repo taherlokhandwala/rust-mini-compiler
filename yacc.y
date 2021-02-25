@@ -53,7 +53,7 @@
 
 %%
 Prog	: FN MAIN OP CP OB Statement CB 
-        {printf("Valid\n"); YYACCEPT;} 
+        {printf("\nValid"); YYACCEPT;} 
 	;
 Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
@@ -125,6 +125,6 @@ int main(int argc, char *argv[])
 }
 
 int yyerror(char *msg){
-	printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
+	//printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
 	return 0;
 }

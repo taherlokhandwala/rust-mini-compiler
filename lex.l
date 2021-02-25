@@ -2,6 +2,8 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
+#include<string.h>
+#include<stdlib.h>
 int yyerror(char *s);
 int scope = 0;
 int scope_ret(){
@@ -59,7 +61,7 @@ LESS_OR_EQUAL <\=
 {CLOSE_BLOCK} {scope--;return CB;}
 {OPEN_PARANTHESIS} {return OP;}
 {CLOSE_PARANTHESIS} {return CP;}
-{OPEN_SQUARE} {return OS;}
+{OPEN_SQUARE} {char *s = "Array Pointer"; yylval = s; return OS;}
 {CLOSE_SQUARE} {return CS;}
 {COMMA} {return COM;}
 {COLON} {return COLON;}
