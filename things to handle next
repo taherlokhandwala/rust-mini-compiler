@@ -1,0 +1,4 @@
+1. token generation (each occurence of a should generate a token, which needs to be printed)
+2. error handling: if there is a declaration such as 1a = 5, a=5 should be added to the table, and it should show error, and continue 
+3. symbol table should print regardless of error
+4. what ate the valid statements in the while construct

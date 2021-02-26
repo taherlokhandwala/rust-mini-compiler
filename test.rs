@@ -9,7 +9,7 @@ fn main(){
 
     while a < 10 {
         println!("{}",a);
-        a=a+10;
+        a=a+10;$
         let mut e: i32 = 10;
     }
 
@@ -17,3 +17,4 @@ fn main(){
         println!("{}",i);
     }
 }
+
