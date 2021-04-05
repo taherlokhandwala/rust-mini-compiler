@@ -2,7 +2,13 @@
 %{
 #include <stdio.h>
 #include "y.tab.h"
-void yyerror(char *s);
+#include<string.h>
+#include<stdlib.h>
+int yyerror(char *s);
+int scope = 0;
+int scope_ret(){
+    return scope;
+}
 %}
 FN fn
 MAIN main
@@ -16,6 +22,9 @@ MUT mut
 TRUE true
 FALSE false
 PRINTLN println!
+I32 i32
+F32 f32
+STR str
 STMT_TERMINATOR ;
 OPEN_BLOCK \{
 CLOSE_BLOCK \}
@@ -24,6 +33,7 @@ CLOSE_PARANTHESIS \)
 OPEN_SQUARE \[
 CLOSE_SQUARE \]
 COMMA ,
+COLON :
 IDENTIFIER [a-zA-Z][a-zA-Z0-9_]*|_[a-zA-Z0-9_]+
 DIGIT	[0-9]
 DIGITS	{DIGIT}+
@@ -47,13 +57,14 @@ LESS_OR_EQUAL <\=
 {STMT_TERMINATOR} { return ST;}
 {FN} {return FN;}
 {MAIN} {return MAIN;}
-{OPEN_BLOCK} {return OB;}
-{CLOSE_BLOCK} {return CB;}
+{OPEN_BLOCK} {scope++;return OB;}
+{CLOSE_BLOCK} {scope--;return CB;}
 {OPEN_PARANTHESIS} {return OP;}
 {CLOSE_PARANTHESIS} {return CP;}
-{OPEN_SQUARE} {return OS;}
+{OPEN_SQUARE} {char *s = "Array Pointer"; yylval = s; return OS;}
 {CLOSE_SQUARE} {return CS;}
 {COMMA} {return COM;}
+{COLON} {return COLON;}
 {ASSIGN} {return ASSIGN;}
 {EQUALS} {return EQUALS;}
 {NOT_EQUALS} {return NOT_EQUALS;}
@@ -74,6 +85,9 @@ LESS_OR_EQUAL <\=
 {MUT} {return MUT;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
-{IDENTIFIER} {return IDENTIFIER;}
-{NUMBER} {return NUMBER;}
-{STRING} {return STRING;}
+{I32} {yylval = strdup(yytext);return I32;}
+{F32} {yylval = strdup(yytext);return F32;}
+{STR} {yylval = strdup(yytext);return STR;}
+{IDENTIFIER} {yylval = strdup(yytext);return IDENTIFIER;}
+{NUMBER} {yylval = strdup(yytext);return NUMBER;}
+{STRING} {yylval = strdup(yytext);return STRING;}

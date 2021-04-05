@@ -1,8 +1,15 @@
 %{
-#include<stdio.h>
-int yylex();
-void yyerror(char *s);
+        #include <stdlib.h>
+	#include <stdio.h>
+        #define YYSTYPE char *
+	#include "symboltable.h"
+
+	sym_table* table;
+
+	int yyerror(char *msg);
+        int yylex();
 %}
+
 
 %token FN 
 %token MAIN 
@@ -24,6 +31,9 @@ void yyerror(char *s);
 %token OS 
 %token CS 
 %token IDENTIFIER 
+%token I32
+%token F32
+%token STR
 %token NUMBER 
 %token STRING 
 %token PLUS 
@@ -38,23 +48,30 @@ void yyerror(char *s);
 %token EQUALS
 %token NOT_EQUALS 
 %token COM 
+%token COLON
 %token LOGICAL
 
 %%
-Prog	: FN MAIN OP CP OB Statement CB
-        {printf("Valid\n"); YYACCEPT;} 
+Prog	: FN MAIN OP CP OB Statement CB 
+        {printf("\nValid"); YYACCEPT;} 
 	;
-Statement   : Decl | Assignment | ForLoop | WhileLoop | ST | %empty
+Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
-Decl    : LET MUT x ST Statement
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$3,$7,$5,"Identifier",scope_ret());}
         ;
-x       : IDENTIFIER | IDENTIFIER ASSIGN w
+Type    : I32 | F32 | STR
         ;
-w       : STRING | Expr 
+w       : STRING | Array | Expr 
         ;
-Assignment  : IDENTIFIER ASSIGN w ST Statement
+Array   : OS Args CS
         ;
-Expr:   AddExpr Relop AddExpr | AddExpr
+Args    : w | Args COM w
+        ;
+Assignment  : IDENTIFIER ASSIGN w ST Statement 
+        ;
+Expr:   AddExpr Relop AddExpr | AddExpr | Bool
+        ;
+Bool : TRUE | FALSE
         ;
 Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
@@ -66,22 +83,48 @@ Term: Term Mulop Factor | Factor
         ;
 Mulop: MUL | DIVIDE
         ;
-Factor: OP Expr CP | IDENTIFIER | NUMBER;
+Factor: OP Expr CP | IDENTIFIER | NUMBER | I32;
         ;
-ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB
+ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
         ;
-WhileLoop : WHILE Expr OB Statement CB
+WhileLoop : WHILE Expr OB Statement CB Statement
+        ;
+Break   : BREAK ST Statement
+        ;
+Continue   : CONTINUE ST Statement
+        ;
+Print   : PRINTLN OP STRING c CP ST Statement
+        ;
+c       : COM ListVars | %empty   
+        ;
+ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
-void yyerror(char *s)
+
+#include "lex.yy.c"
+#include <ctype.h>
+
+int main(int argc, char *argv[])
 {
-printf("%s\n",s);
+	table = init_table();
+
+	yyin = fopen(argv[1], "r");
+
+	if(!yyparse()){
+		printf("\nParsing complete\n");
+	}
+	else{
+		printf("\nParsing failed\n");
+	}
+
+	printf("\n\tSymbol table");
+	display(table);
+
+	fclose(yyin);
+	return 0;
 }
-int main()
-{
-// #ifdef YYDEBUG
-// yydebug = 1;
-// #endif
-yyparse();
-return 0;
+
+int yyerror(char *msg){
+	//printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
+	return 0;
 }
