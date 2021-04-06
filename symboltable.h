@@ -64,17 +64,16 @@ int insert(sym_table* table, char* name, void* v, char* data_type, char* token, 
 	return 0;
 }
 
-int update(sym_table* table, char* name, char* value, char* data_type, char* token, int scope){
+int update(sym_table* table, char* name, void* v, char* data_type, char* token, int scope){
 
-	/*
-	char value[100]={'\0'};
+	char* value=calloc(100,sizeof(char));
 	if(!strcmp(data_type,"i32"))
 		sprintf(value,"%d",*(int *)v);
 	else if(!strcmp(data_type,"f32"))
 		sprintf(value,"%f",*(float *)v);
 	else if(!strcmp(data_type,"str"))
-		strcpy(value,*(char **)v);
-	*/
+		memcpy(value,*(char **)v+1,strlen(*(char **)v)-2);
+	
 	for(int i=0;i<table->count_rows;i++)
 		if (!strcmp(table->node[i].name,name) && !strcmp(table->node[i].data_type,data_type)){
 			table->node[table->count_rows].value = value;
