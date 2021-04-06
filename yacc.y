@@ -1,8 +1,9 @@
 %{
         #include <stdlib.h>
 	#include <stdio.h>
-        #define YYSTYPE char *
+        #include <string.h>
 	#include "symboltable.h"
+        #define YYSTYPE char *
 
 	sym_table* table;
 
@@ -57,33 +58,33 @@ Prog	: FN MAIN OP CP OB Statement CB
 	;
 Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
         ; 
-Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$3,$7,$5,"Identifier",scope_ret());}
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$3,&$7,$5,"Identifier",scope_ret());}
         ;
 Type    : I32 | F32 | STR
         ;
-w       : STRING | Array | Expr 
+w       : STRING | Array | Expr //{$$ = $1; }
         ;
 Array   : OS Args CS
         ;
 Args    : w | Args COM w
         ;
-Assignment  : IDENTIFIER ASSIGN w ST Statement 
+Assignment  : IDENTIFIER ASSIGN w ST Statement //{printf("%d\n",$3);}
         ;
-Expr:   AddExpr Relop AddExpr | AddExpr | Bool
+Expr:   AddExpr Relop AddExpr 
+        | AddExpr //{$$ = $1;}
+        | Bool
         ;
 Bool : TRUE | FALSE
         ;
 Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
-AddExpr: AddExpr Addop Term | Term
+AddExpr: AddExpr PLUS Term //{$$ = $1 + $3;} 
+        | AddExpr MINUS Term //{$$ = $1 - $3;} 
+        | Term //{$$ = $1;}
         ;
-Addop: PLUS | MINUS
+Term: Term MUL Factor | Term DIVIDE Factor | Factor //{printf("Value=%d\n",$1);}
         ;
-Term: Term Mulop Factor | Factor
-        ;
-Mulop: MUL | DIVIDE
-        ;
-Factor: OP Expr CP | IDENTIFIER | NUMBER | I32;
+Factor: OP Expr CP | IDENTIFIER | NUMBER {$$ = $1;}
         ;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
         ;

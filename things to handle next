@@ -3,6 +3,7 @@
 3. symbol table should print regardless of error
 4. what ate the valid statements in the while construct
 
+4. Add update function
 5. add line number(keep track which line something belongs)
 6. expresion evaluation ($$ = $1 + $3). Maybe split the operations to make this easier. Insert this into symtab
 7. 3 address code generation. Make sure to add temp vars to symtab as well.

@@ -1,7 +1,7 @@
 %option noyywrap
 %{
-#include <stdio.h>
-#include "y.tab.h"
+#include<stdio.h>
+#include"y.tab.h"
 #include<string.h>
 #include<stdlib.h>
 int yyerror(char *s);
@@ -79,7 +79,7 @@ LESS_OR_EQUAL <\=
 {DIVIDE} {return DIVIDE;}
 {BREAK} {return BREAK;}
 {CONTINUE} {return CONTINUE;}
-{FOR} {return FOR;}
+{FOR} {return FOR;} 
 {IN} {return IN;}
 {LET} {return LET;}
 {MUT} {return MUT;}

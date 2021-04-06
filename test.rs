@@ -9,7 +9,7 @@ fn main(){
 
     while a < 10 {
         println!("{}",a);
-        a=a+10;$
+        a=10+10;
         let mut e: i32 = 10;
     }
 
