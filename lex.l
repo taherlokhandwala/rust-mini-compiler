@@ -89,5 +89,5 @@ LESS_OR_EQUAL <\=
 {F32} {yylval = strdup(yytext);return F32;}
 {STR} {yylval = strdup(yytext);return STR;}
 {IDENTIFIER} {yylval = strdup(yytext);return IDENTIFIER;}
-{NUMBER} {yylval = strdup(yytext);return NUMBER;}
+{NUMBER} {yylval = atoi(yytext);return NUMBER;}
 {STRING} {yylval = strdup(yytext);return STRING;}
