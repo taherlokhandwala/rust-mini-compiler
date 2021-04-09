@@ -3,16 +3,72 @@
 	#include <stdio.h>
         #include <string.h>
 	#include "symboltable.h"
-
 	sym_table* table;
         
 	int yyerror(char *msg);
         int yylex();
-
         int *value_storage(int val){
                 int *v = calloc(1,sizeof(int));
                 *v = val;
                 return v;
+        }
+
+        typedef struct quadruples{
+                char *op;
+                char *arg1;
+                char *arg2;
+                char *res;
+        }quad;
+        int quadlen = 0;
+        quad q[100];
+        char i_[10]="1";
+        char temporary[10]="t";
+        int index1=0,top=0,lnum=0,ltop=0;
+        int label[1000];
+        char st1[1000][100];
+
+        void push(char *a)
+        {
+	        strcpy(st1[++top],a);
+        }
+
+        void quad_table(char *op, char *arg1, char *arg2, char *res)
+        {
+                q[quadlen].op = (char*)malloc(sizeof(char)*strlen(op));
+                q[quadlen].arg1 = (char*)malloc(sizeof(char)*strlen(arg1));
+                q[quadlen].arg2 = (char*)malloc(sizeof(char)*strlen(arg1));
+                q[quadlen].res = (char*)malloc(sizeof(char)*strlen(res));
+                strcpy(q[quadlen].op,op);
+                strcpy(q[quadlen].arg1,arg1);
+                strcpy(q[quadlen].arg2,arg2);
+                strcpy(q[quadlen].res,res);
+                quadlen++;
+        }
+
+        void codegen()
+        {
+                char value[100]={'\0'};
+                
+                strcpy(temporary,"t");
+                strcat(temporary,i_);
+                strcpy(value,st1[top]);
+                
+                printf("%s = %s %s %s\n",temporary,st1[top-2],st1[top-1],st1[top]);
+                quad_table(st1[top-1],st1[top-2],st1[top],temporary);
+                //insert(table,temporary,value,"temp","temp",scope_ret());
+                
+                top-=2;
+                strcpy(st1[top],temporary);
+                i_[0]++;  //i_=2
+
+        }
+
+        void codegen_assign()
+        {
+                printf("%s = %s\n",st1[top-1],st1[top-2]);
+                quad_table("=",st1[top-2],"NULL",st1[top-1]);
+                //insert(table,st1[top-1],st1[top-2],"temp","temp",scope_ret());
+                top-=2;  
         }
 %}
 
@@ -63,41 +119,100 @@
 %token LOGICAL
 
 %%
-Prog	: FN MAIN OP CP OB Statement CB 
-        {printf("\nValid"); YYACCEPT;} 
-	;
-Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
-        ; 
-Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<name>3,$<type>7,$<name>5,"Identifier",scope_ret());}
-        ;
+Prog	:       {printf("\n\n---------------Three address code---------------\n");}
+                FN MAIN OP CP OB Statement CB 
+                { YYACCEPT;} 
+	        ;
+
+Statement   :   Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
+                ;
+
+Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<name>3,$<type>7,$<name>5,
+                "Identifier",scope_ret());}
+                ;
+
 Type    : I32 {$<name>$ = $<name>1;}
         | F32 {$<name>$ = $<name>1;}
         | STR {$<name>$ = $<name>1;}
         ;
+
 w       : STRING {$<type>$ = $<name>1;}
         | Array //
         | Expr { $<type>$ = value_storage($<ival>1); }
         ;
+
 Array   : OS Args CS
         ;
+
 Args    : w | Args COM w
         ;
-Assignment  : IDENTIFIER ASSIGN w ST Statement //{printf("%d\n",$3);}
+
+Assignment  : IDENTIFIER ASSIGN w ST Statement 
+        {strcpy(st1[++top],$<name>1); strcpy(st1[++top],"=");codegen_assign();}
         ;
+
 Expr:   AddExpr Relop AddExpr 
         | AddExpr {$<ival>$ = $<ival>1;}
         | Bool
         ;
+
 Bool : TRUE | FALSE
         ;
+
 Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
-AddExpr: AddExpr PLUS Term {$<ival>$ = $<ival>1 + $<ival>3;} 
-        | AddExpr MINUS Term {$<ival>$ = $<ival>1 - $<ival>3;} 
+
+AddExpr: AddExpr PLUS Term 
+        {
+                $<ival>$ = $<ival>1 + $<ival>3; 
+                strcpy(st1[++top],st1[top-1]);
+                strcpy(st1[++top],"+");
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", $<ival>3);
+                strcpy(st1[++top],cpy_temp); 
+                codegen();
+        } 
+        | AddExpr MINUS Term 
+        {
+                $<ival>$ = $<ival>1 - $<ival>3; 
+                strcpy(st1[++top],st1[top-1]);
+                strcpy(st1[++top],"-");
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", $<ival>3);
+                strcpy(st1[++top],cpy_temp);
+                codegen();
+        } 
         | Term {$<ival>$ = $<ival>1;}
         ;
-Term: Term MUL Factor | Term DIVIDE Factor | Factor {$<ival>$ = $<ival>1;}
+        
+Term:   Term MUL Factor 
+        {
+                $<ival>$ = $<ival>1 * $<ival>3; 
+                strcpy(st1[++top],st1[top-1]);
+                strcpy(st1[++top],"*");
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", $<ival>3);
+                strcpy(st1[++top],cpy_temp);
+                codegen();
+        } 
+        | Term DIVIDE Factor 
+        {
+                if($<ival>3 == 0)
+                {
+                        printf("Divide by Zero Error\n");
+                        return;
+                }
+                $<ival>$ = $<ival>1 / $<ival>3;
+        } 
+        | Factor 
+        {
+                $<ival>$ = $<ival>1;
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", $<ival>1);
+                strcpy(st1[++top],cpy_temp);
+        }
         ;
+        
 Factor: OP Expr CP | IDENTIFIER | NUMBER {$<ival>$ = $<ival>1;}
         ;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
@@ -127,13 +242,20 @@ int main(int argc, char *argv[])
 
 	if(!yyparse()){
 		printf("\nParsing complete\n");
+                printf("----------------------Quadruples----------------------\n\n");
+                printf("Operator \t Arg1 \t\t Arg2 \t\t Result \n");
+                int i;
+                for(i=0;i<quadlen;i++)
+                {
+                        printf("%-8s \t %-8s \t %-8s \t %-6s      \n",q[i].op,q[i].arg1,q[i].arg2,q[i].res);
+                }
+                printf("\n\n");
+                printf("\n\tSymbol table");
+	        display(table);
 	}
 	else{
 		printf("\nParsing failed\n");
 	}
-
-	printf("\n\tSymbol table");
-	display(table);
 
 	fclose(yyin);
 	return 0;
