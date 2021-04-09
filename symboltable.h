@@ -38,12 +38,13 @@ sym_table* init_row(sym_table* table){
 
 int insert(sym_table* table, char* name, void* v, char* data_type, char* token, int scope){
 	char* value=calloc(100,sizeof(char));
-	if(!strcmp(data_type,"i32"))
+	if(!strcmp(data_type,"i32")){
 		sprintf(value,"%d",*(int *)v);
+	}
 	else if(!strcmp(data_type,"f32"))
 		sprintf(value,"%f",*(float *)v);
 	else if(!strcmp(data_type,"str"))
-		memcpy(value,*(char **)v+1,strlen(*(char **)v)-2);
+		memcpy(value,(char *)v+1,strlen((char *)v)-2);
 
 	if(!table->count_rows)
 		init_row(table);

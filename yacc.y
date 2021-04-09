@@ -3,14 +3,24 @@
 	#include <stdio.h>
         #include <string.h>
 	#include "symboltable.h"
-        #define YYSTYPE char *
 
 	sym_table* table;
-
+        
 	int yyerror(char *msg);
         int yylex();
+
+        int *value_storage(int val){
+                int *v = calloc(1,sizeof(int));
+                *v = val;
+                return v;
+        }
 %}
 
+%union{
+        int ival;
+        char *name;
+        void *type;
+}
 
 %token FN 
 %token MAIN 
@@ -19,7 +29,7 @@
 %token FOR 
 %token IN 
 %token WHILE 
-%token LET 
+%token LET
 %token MUT 
 %token TRUE 
 %token FALSE 
@@ -56,13 +66,17 @@
 Prog	: FN MAIN OP CP OB Statement CB 
         {printf("\nValid"); YYACCEPT;} 
 	;
-Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | %empty
+Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
         ; 
-Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$3,&$7,$5,"Identifier",scope_ret());}
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<name>3,$<type>7,$<name>5,"Identifier",scope_ret());}
         ;
-Type    : I32 | F32 | STR
+Type    : I32 {$<name>$ = $<name>1;}
+        | F32 {$<name>$ = $<name>1;}
+        | STR {$<name>$ = $<name>1;}
         ;
-w       : STRING | Array | Expr //{$$ = $1; }
+w       : STRING {$<type>$ = $<name>1;}
+        | Array //
+        | Expr { $<type>$ = value_storage($<ival>1); }
         ;
 Array   : OS Args CS
         ;
@@ -71,20 +85,20 @@ Args    : w | Args COM w
 Assignment  : IDENTIFIER ASSIGN w ST Statement //{printf("%d\n",$3);}
         ;
 Expr:   AddExpr Relop AddExpr 
-        | AddExpr //{$$ = $1;}
+        | AddExpr {$<ival>$ = $<ival>1;}
         | Bool
         ;
 Bool : TRUE | FALSE
         ;
 Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
         ;
-AddExpr: AddExpr PLUS Term //{$$ = $1 + $3;} 
-        | AddExpr MINUS Term //{$$ = $1 - $3;} 
-        | Term //{$$ = $1;}
+AddExpr: AddExpr PLUS Term {$<ival>$ = $<ival>1 + $<ival>3;} 
+        | AddExpr MINUS Term {$<ival>$ = $<ival>1 - $<ival>3;} 
+        | Term {$<ival>$ = $<ival>1;}
         ;
-Term: Term MUL Factor | Term DIVIDE Factor | Factor //{printf("Value=%d\n",$1);}
+Term: Term MUL Factor | Term DIVIDE Factor | Factor {$<ival>$ = $<ival>1;}
         ;
-Factor: OP Expr CP | IDENTIFIER | NUMBER {$$ = $1;}
+Factor: OP Expr CP | IDENTIFIER | NUMBER {$<ival>$ = $<ival>1;}
         ;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
         ;
@@ -96,7 +110,7 @@ Continue   : CONTINUE ST Statement
         ;
 Print   : PRINTLN OP STRING c CP ST Statement
         ;
-c       : COM ListVars | %empty   
+c       : COM ListVars | /* empty */   
         ;
 ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;

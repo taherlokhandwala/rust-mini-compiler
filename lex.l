@@ -61,7 +61,7 @@ LESS_OR_EQUAL <\=
 {CLOSE_BLOCK} {scope--;return CB;}
 {OPEN_PARANTHESIS} {return OP;}
 {CLOSE_PARANTHESIS} {return CP;}
-{OPEN_SQUARE} {char *s = "Array Pointer"; yylval = s; return OS;}
+{OPEN_SQUARE} {char *s = "Array Pointer"; yylval.name = strdup(s); return OS;}
 {CLOSE_SQUARE} {return CS;}
 {COMMA} {return COM;}
 {COLON} {return COLON;}
@@ -85,9 +85,9 @@ LESS_OR_EQUAL <\=
 {MUT} {return MUT;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
-{I32} {yylval = strdup(yytext);return I32;}
-{F32} {yylval = strdup(yytext);return F32;}
-{STR} {yylval = strdup(yytext);return STR;}
-{IDENTIFIER} {yylval = strdup(yytext);return IDENTIFIER;}
-{NUMBER} {yylval = atoi(yytext);return NUMBER;}
-{STRING} {yylval = strdup(yytext);return STRING;}
+{I32} {yylval.name = strdup(yytext);return I32;}
+{F32} {yylval.name = strdup(yytext);return F32;}
+{STR} {yylval.name = strdup(yytext);return STR;}
+{IDENTIFIER} {yylval.name = strdup(yytext);return IDENTIFIER;}
+{NUMBER} {yylval.ival = atoi(yytext);return NUMBER;}
+{STRING} {yylval.name = strdup(yytext);return STRING;}
