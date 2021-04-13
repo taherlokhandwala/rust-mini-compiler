@@ -2,13 +2,16 @@
         #include <stdlib.h>
 	#include <stdio.h>
         #include <string.h>
-	#include "symboltable.h"
+        
+        #include "lex.yy.c"
+
 	sym_table* table;
         
 	int yyerror(char *msg);
         int yylex();
-        int *value_storage(int val){
-                int *v = calloc(1,sizeof(int));
+
+        long *value_storage(long val){
+                long *v = calloc(1,sizeof(long));
                 *v = val;
                 return v;
         }
@@ -73,9 +76,9 @@
 %}
 
 %union{
-        int ival;
-        char *name;
-        void *type;
+        long lval;
+        char *str;
+        void *void_type;
 }
 
 %token FN 
@@ -119,6 +122,7 @@
 %token LOGICAL
 
 %%
+//here
 Prog	:       {printf("\n\n---------------Three address code---------------\n");}
                 FN MAIN OP CP OB Statement CB 
                 { YYACCEPT;} 
@@ -137,8 +141,20 @@ Type    : I32 {$<name>$ = $<name>1;}
         ;
 
 w       : STRING {$<type>$ = $<name>1;}
+Prog	: FN MAIN OP CP OB Statement CB 
+        {printf("\nValid"); YYACCEPT;} 
+	;
+Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
+        ; 
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<str>3,$<void_type>7,$<str>5,"Identifier",scope_ret());}
+        ;
+Type    : I32 {$<str>$ = $<str>1;}
+        | F32 {$<str>$ = $<str>1;}
+        | STR {$<str>$ = $<str>1;}
+        ;
+w       : STRING {$<void_type>$ = $<str>1;}
         | Array //
-        | Expr { $<type>$ = value_storage($<ival>1); }
+        | Expr { $<void_type>$ = value_storage($<lval>1); }
         ;
 
 Array   : OS Args CS
@@ -146,7 +162,7 @@ Array   : OS Args CS
 
 Args    : w | Args COM w
         ;
-
+// Here
 Assignment  : IDENTIFIER ASSIGN w ST Statement 
         {strcpy(st1[++top],$<name>1); strcpy(st1[++top],"=");codegen_assign();}
         ;
@@ -214,6 +230,41 @@ Term:   Term MUL Factor
         ;
         
 Factor: OP Expr CP | IDENTIFIER | NUMBER {$<ival>$ = $<ival>1;}
+Assignment  : IDENTIFIER ASSIGN w ST Statement {
+                                                
+                                                int check = update(table,$<str>1,$<void_type>3,scope_ret());
+                                                }
+        ;
+Expr:     AddExpr LESS_THAN AddExpr  { $<lval>$ = ($<lval>1 < $<lval>3); }
+        | AddExpr LESS_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 <= $<lval>3); }
+        | AddExpr GREATER_THAN AddExpr { $<lval>$ = ($<lval>1 > $<lval>3); }
+        | AddExpr GREATER_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 >= $<lval>3); }
+        | AddExpr EQUALS AddExpr { $<lval>$ = ($<lval>1 == $<lval>3); }
+        | AddExpr NOT_EQUALS AddExpr { $<lval>$ = ($<lval>1 != $<lval>3); }
+        | AddExpr {$<lval>$ = $<lval>1;}
+        | TRUE { $<lval>$ = 1; }
+        | FALSE { $<lval>$ = 0; }
+        ;
+AddExpr: AddExpr PLUS Term {$<lval>$ = $<lval>1 + $<lval>3;} 
+        | AddExpr MINUS Term {$<lval>$ = $<lval>1 - $<lval>3;} 
+        | Term {$<lval>$ = $<lval>1;}
+        ;
+Term: Term MUL Factor | Term DIVIDE Factor | Factor {$<lval>$ = $<lval>1;}
+        ;
+Factor: OP Expr CP 
+        | IDENTIFIER    {
+                        char *value = calloc(100,sizeof(char));
+                        char *data_type = calloc(4,sizeof(char));
+                        fetch(table,$<str>1,data_type,value);
+
+                        if(!strcmp(data_type,"i32"))
+                                $<lval>$ = strtol(value,NULL,0);
+                        if(!strcmp(data_type,"f32"))
+                                $<lval>$ = strtol(value,NULL,0);
+                        else if(!strcmp(data_type,"str"))
+                                $<str>$ = value;
+                        } 
+        | NUMBER {$<lval>$ = $<lval>1;}
         ;
 ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
         ;
@@ -231,7 +282,6 @@ ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
 
-#include "lex.yy.c"
 #include <ctype.h>
 
 int main(int argc, char *argv[])
