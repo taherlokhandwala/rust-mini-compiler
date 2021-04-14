@@ -1,14 +1,11 @@
 %{
         #include <stdlib.h>
-	#include <stdio.h>
+        #include <stdio.h>
         #include <string.h>
-        
-        #include "lex.yy.c"
 
-	sym_table* table;
-        
-	int yyerror(char *msg);
-        int yylex();
+        #include "symboltable.h"
+
+        sym_table* table;
 
         long *value_storage(long val){
                 long *v = calloc(1,sizeof(long));
@@ -73,12 +70,13 @@
                 //insert(table,st1[top-1],st1[top-2],"temp","temp",scope_ret());
                 top-=2;  
         }
+        int yyerror(char *msg);
+        int yylex();
 %}
 
 %union{
         long lval;
         char *str;
-        void *void_type;
 }
 
 %token FN 
@@ -144,17 +142,16 @@ w       : STRING {$<type>$ = $<name>1;}
 Prog	: FN MAIN OP CP OB Statement CB 
         {printf("\nValid"); YYACCEPT;} 
 	;
-Statement   : Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
+Statement   : Decl Statement | Assignment Statement | ForLoop Statement | WhileLoop Statement | Break Statement | Continue Statement | Print Statement | ST Statement | /* empty */
         ; 
-Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<str>3,$<void_type>7,$<str>5,"Identifier",scope_ret());}
+Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret());}
         ;
 Type    : I32 {$<str>$ = $<str>1;}
-        | F32 {$<str>$ = $<str>1;}
-        | STR {$<str>$ = $<str>1;}
+        | F32 {$<str>$ = $<str>1;} //| STR {$<str>$ = $<str>1;}
         ;
-w       : STRING {$<void_type>$ = $<str>1;}
+w       : STRING {$<lval>$ = $<str>1;}
         | Array //
-        | Expr { $<void_type>$ = value_storage($<lval>1); }
+        | Expr { $<lval>$ = $<lval>1; }
         ;
 
 Array   : OS Args CS
@@ -234,6 +231,7 @@ Assignment  : IDENTIFIER ASSIGN w ST Statement {
                                                 
                                                 int check = update(table,$<str>1,$<void_type>3,scope_ret());
                                                 }
+Assignment  : IDENTIFIER ASSIGN w ST  {update(table,$<str>1,$<lval>3,scope_ret());}
         ;
 Expr:     AddExpr LESS_THAN AddExpr  { $<lval>$ = ($<lval>1 < $<lval>3); }
         | AddExpr LESS_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 <= $<lval>3); }
@@ -249,32 +247,27 @@ AddExpr: AddExpr PLUS Term {$<lval>$ = $<lval>1 + $<lval>3;}
         | AddExpr MINUS Term {$<lval>$ = $<lval>1 - $<lval>3;} 
         | Term {$<lval>$ = $<lval>1;}
         ;
-Term: Term MUL Factor | Term DIVIDE Factor | Factor {$<lval>$ = $<lval>1;}
+Term:   Term MUL Factor {$<lval>$ = $<lval>1 * $<lval>3;} 
+        | Term DIVIDE Factor {$<lval>$ = $<lval>1 / $<lval>3;} 
+        | Factor {$<lval>$ = $<lval>1;}
         ;
 Factor: OP Expr CP 
         | IDENTIFIER    {
-                        char *value = calloc(100,sizeof(char));
-                        char *data_type = calloc(4,sizeof(char));
-                        fetch(table,$<str>1,data_type,value);
-
-                        if(!strcmp(data_type,"i32"))
-                                $<lval>$ = strtol(value,NULL,0);
-                        if(!strcmp(data_type,"f32"))
-                                $<lval>$ = strtol(value,NULL,0);
-                        else if(!strcmp(data_type,"str"))
-                                $<str>$ = value;
+                        long *value=calloc(1,sizeof(long));
+                        if(fetch(table,$<str>1,value))
+                                $<lval>$= *value;
                         } 
         | NUMBER {$<lval>$ = $<lval>1;}
         ;
-ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB Statement
+ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB 
         ;
-WhileLoop : WHILE Expr OB Statement CB Statement
+WhileLoop : WHILE Expr OB Statement CB 
         ;
-Break   : BREAK ST Statement
+Break   : BREAK ST 
         ;
-Continue   : CONTINUE ST Statement
+Continue   : CONTINUE ST 
         ;
-Print   : PRINTLN OP STRING c CP ST Statement
+Print   : PRINTLN OP STRING c CP ST 
         ;
 c       : COM ListVars | /* empty */   
         ;
@@ -282,6 +275,7 @@ ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
 
+#include "lex.yy.c"
 #include <ctype.h>
 
 int main(int argc, char *argv[])

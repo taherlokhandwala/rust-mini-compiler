@@ -5,10 +5,8 @@
     #include<string.h>
     #include<stdlib.h>
 
-    #include "symboltable.h"
-
     int yyerror(char *s);
-    
+    int line_no = 1;
     int scope = 0;
     int scope_ret(){
         return scope;
@@ -93,5 +91,5 @@ LESS_OR_EQUAL <\=
 {F32} {yylval.str = strdup(yytext);return F32;}
 {STR} {yylval.str = strdup(yytext);return STR;}
 {IDENTIFIER} {yylval.str = strdup(yytext);return IDENTIFIER;}
-{NUMBER} {yylval.lval = atoi(yytext);return NUMBER;}
+{NUMBER} {yylval.lval = strtol(yytext,NULL,0);return NUMBER;}
 {STRING} {yylval.str = strdup(yytext);return STRING;}
