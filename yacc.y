@@ -45,6 +45,22 @@
                 quadlen++;
         }
 
+        void f2()
+        {
+                lnum++;
+                strcpy(temporary,"t");
+                strcat(temporary,i_);
+                printf("if !%s goto L%d\n",st1[--top],lnum);
+                char t[20]="L";
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", lnum);
+                strcat(t,cpy_temp);
+                strcpy(cpy_temp,"!");
+                quad_table("if",strcat(cpy_temp,st1[top--]),"NULL",t);
+                quad_table("goto","NULL","NULL",t);
+                //i_[0]++;
+        }
+
         void codegen()
         {
                 char value[100]={'\0'};
@@ -61,6 +77,18 @@
                 strcpy(st1[top],temporary);
                 i_[0]++;  //i_=2
 
+        }
+
+        void codegen_rel()
+        {
+                strcpy(temporary,"t");
+                strcat(temporary,i_);
+                printf("%s = %s %s %s\n",temporary,st1[top-1],st1[top],st1[top-2]);
+                
+                quad_table(st1[top],st1[top-1],st1[top-2],temporary);
+                top-=2;
+                strcpy(st1[top],temporary);
+                i_[0]++;  //i_=2
         }
 
         void codegen_assign()
@@ -134,7 +162,8 @@ Statement:      Decl Statement
                 | ST Statement 
                 | /* empty */
         ; 
-Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret());}
+Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret()); strcpy(st1[++top],$<str>3); strcpy(st1[++top],"=");
+                                        codegen_assign();}
         ;
 Type    :       I32 {$<str>$ = $<str>1;}
                 | F32 {$<str>$ = $<str>1;} //| STR {$<str>$ = $<str>1;}
@@ -154,12 +183,66 @@ Assignment:     IDENTIFIER ASSIGN w ST  {
                                         codegen_assign();
                                         }
         ;
-Expr    :       AddExpr LESS_THAN AddExpr  { $<lval>$ = ($<lval>1 < $<lval>3); }
-                | AddExpr LESS_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 <= $<lval>3); }
-                | AddExpr GREATER_THAN AddExpr { $<lval>$ = ($<lval>1 > $<lval>3); }
-                | AddExpr GREATER_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 >= $<lval>3); }
-                | AddExpr EQUALS AddExpr { $<lval>$ = ($<lval>1 == $<lval>3); }
-                | AddExpr NOT_EQUALS AddExpr { $<lval>$ = ($<lval>1 != $<lval>3); }
+Expr    :       AddExpr LESS_THAN AddExpr  { 
+                                                $<lval>$ = ($<lval>1 < $<lval>3);
+                                                char cpy_temp[50]; 
+                                                sprintf(cpy_temp, "%d", $<lval>3);
+                                                strcpy(st1[++top],cpy_temp);  
+                                                sprintf(cpy_temp, "%d", $<lval>1);
+                                                strcpy(st1[++top],cpy_temp);
+                                                strcpy(st1[++top],"<"); 
+                                                codegen_rel(); 
+                                           }
+                | AddExpr LESS_OR_EQUAL AddExpr { 
+                                                        $<lval>$ = ($<lval>1 <= $<lval>3);
+                                                        char cpy_temp[50]; 
+                                                        sprintf(cpy_temp, "%d", $<lval>3);
+                                                        strcpy(st1[++top],cpy_temp);  
+                                                        sprintf(cpy_temp, "%d", $<lval>1);
+                                                        strcpy(st1[++top],cpy_temp);
+                                                        strcpy(st1[++top],"<="); 
+                                                        codegen_rel(); 
+                                                }
+                | AddExpr GREATER_THAN AddExpr { 
+                                                        $<lval>$ = ($<lval>1 > $<lval>3);
+                                                        char cpy_temp[50]; 
+                                                        sprintf(cpy_temp, "%d", $<lval>3);
+                                                        strcpy(st1[++top],cpy_temp);  
+                                                        sprintf(cpy_temp, "%d", $<lval>1);
+                                                        strcpy(st1[++top],cpy_temp);
+                                                        strcpy(st1[++top],">"); 
+                                                        codegen_rel(); 
+                                                }
+                | AddExpr GREATER_OR_EQUAL AddExpr { 
+                                                        $<lval>$ = ($<lval>1 >= $<lval>3); 
+                                                        char cpy_temp[50]; 
+                                                        sprintf(cpy_temp, "%d", $<lval>3);
+                                                        strcpy(st1[++top],cpy_temp);  
+                                                        sprintf(cpy_temp, "%d", $<lval>1);
+                                                        strcpy(st1[++top],cpy_temp);
+                                                        strcpy(st1[++top],">="); 
+                                                        codegen_rel();
+                                                   }
+                | AddExpr EQUALS AddExpr { 
+                                                $<lval>$ = ($<lval>1 == $<lval>3);
+                                                char cpy_temp[50]; 
+                                                sprintf(cpy_temp, "%d", $<lval>3);
+                                                strcpy(st1[++top],cpy_temp);  
+                                                sprintf(cpy_temp, "%d", $<lval>1);
+                                                strcpy(st1[++top],cpy_temp);
+                                                strcpy(st1[++top],"=="); 
+                                                codegen_rel(); 
+                                         }
+                | AddExpr NOT_EQUALS AddExpr { 
+                                                $<lval>$ = ($<lval>1 != $<lval>3);
+                                                char cpy_temp[50]; 
+                                                sprintf(cpy_temp, "%d", $<lval>3);
+                                                strcpy(st1[++top],cpy_temp);  
+                                                sprintf(cpy_temp, "%d", $<lval>1);
+                                                strcpy(st1[++top],cpy_temp);
+                                                strcpy(st1[++top],"!="); 
+                                                codegen_rel(); 
+                                             }
                 | AddExpr {$<lval>$ = $<lval>1;}
                 | TRUE { $<lval>$ = 1; }
                 | FALSE { $<lval>$ = 0; }
@@ -215,12 +298,15 @@ Factor  :       OP Expr CP
                                 long *value=calloc(1,sizeof(long));
                                 if(fetch(table,$<str>1,value))
                                         $<lval>$= *value;
+                                
                                 } 
-                | NUMBER {$<lval>$ = $<lval>1;}
+                | NUMBER {
+                                $<lval>$ = $<lval>1;
+                         }
         ;
 ForLoop :       FOR IDENTIFIER IN IDENTIFIER OB Statement CB 
         ;
-WhileLoop:      WHILE Expr OB Statement CB 
+WhileLoop:      WHILE Expr {f2();} OB Statement CB 
         ;
 Break   :       BREAK ST 
         ;
