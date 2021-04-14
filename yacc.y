@@ -120,158 +120,117 @@
 %token LOGICAL
 
 %%
-//here
 Prog	:       {printf("\n\n---------------Three address code---------------\n");}
                 FN MAIN OP CP OB Statement CB 
                 { YYACCEPT;} 
-	        ;
-
-Statement   :   Decl | Assignment | ForLoop | WhileLoop | Break | Continue | Print| ST | /* empty */
-                ;
-
-Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST Statement {insert(table,$<name>3,$<type>7,$<name>5,
-                "Identifier",scope_ret());}
-                ;
-
-Type    : I32 {$<name>$ = $<name>1;}
-        | F32 {$<name>$ = $<name>1;}
-        | STR {$<name>$ = $<name>1;}
         ;
-
-w       : STRING {$<type>$ = $<name>1;}
-Prog	: FN MAIN OP CP OB Statement CB 
-        {printf("\nValid"); YYACCEPT;} 
-	;
-Statement   : Decl Statement | Assignment Statement | ForLoop Statement | WhileLoop Statement | Break Statement | Continue Statement | Print Statement | ST Statement | /* empty */
+Statement:      Decl Statement 
+                | Assignment Statement 
+                | ForLoop Statement 
+                | WhileLoop Statement 
+                | Break Statement 
+                | Continue Statement 
+                | Print Statement 
+                | ST Statement 
+                | /* empty */
         ; 
-Decl    : LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret());}
+Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret());}
         ;
-Type    : I32 {$<str>$ = $<str>1;}
-        | F32 {$<str>$ = $<str>1;} //| STR {$<str>$ = $<str>1;}
+Type    :       I32 {$<str>$ = $<str>1;}
+                | F32 {$<str>$ = $<str>1;} //| STR {$<str>$ = $<str>1;}
         ;
-w       : STRING {$<lval>$ = $<str>1;}
-        | Array //
-        | Expr { $<lval>$ = $<lval>1; }
+w       :       STRING {$<lval>$ = $<str>1;}
+                | Array //
+                | Expr { $<lval>$ = $<lval>1; }
         ;
-
-Array   : OS Args CS
+Array   :       OS Args CS
         ;
-
-Args    : w | Args COM w
+Args    :       w 
+                | Args COM w
         ;
-// Here
-Assignment  : IDENTIFIER ASSIGN w ST Statement 
-        {strcpy(st1[++top],$<name>1); strcpy(st1[++top],"=");codegen_assign();}
+Assignment:     IDENTIFIER ASSIGN w ST  {
+                                        update(table,$<str>1,$<lval>3,scope_ret());
+                                        strcpy(st1[++top],$<str>1); strcpy(st1[++top],"=");
+                                        codegen_assign();
+                                        }
         ;
-
-Expr:   AddExpr Relop AddExpr 
-        | AddExpr {$<ival>$ = $<ival>1;}
-        | Bool
+Expr    :       AddExpr LESS_THAN AddExpr  { $<lval>$ = ($<lval>1 < $<lval>3); }
+                | AddExpr LESS_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 <= $<lval>3); }
+                | AddExpr GREATER_THAN AddExpr { $<lval>$ = ($<lval>1 > $<lval>3); }
+                | AddExpr GREATER_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 >= $<lval>3); }
+                | AddExpr EQUALS AddExpr { $<lval>$ = ($<lval>1 == $<lval>3); }
+                | AddExpr NOT_EQUALS AddExpr { $<lval>$ = ($<lval>1 != $<lval>3); }
+                | AddExpr {$<lval>$ = $<lval>1;}
+                | TRUE { $<lval>$ = 1; }
+                | FALSE { $<lval>$ = 0; }
         ;
-
-Bool : TRUE | FALSE
-        ;
-
-Relop: LESS_THAN | LESS_OR_EQUAL | GREATER_THAN | GREATER_OR_EQUAL | EQUALS | NOT_EQUALS
-        ;
-
-AddExpr: AddExpr PLUS Term 
-        {
-                $<ival>$ = $<ival>1 + $<ival>3; 
-                strcpy(st1[++top],st1[top-1]);
-                strcpy(st1[++top],"+");
-                char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", $<ival>3);
-                strcpy(st1[++top],cpy_temp); 
-                codegen();
-        } 
-        | AddExpr MINUS Term 
-        {
-                $<ival>$ = $<ival>1 - $<ival>3; 
-                strcpy(st1[++top],st1[top-1]);
-                strcpy(st1[++top],"-");
-                char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", $<ival>3);
-                strcpy(st1[++top],cpy_temp);
-                codegen();
-        } 
-        | Term {$<ival>$ = $<ival>1;}
+AddExpr :       AddExpr PLUS Term {
+                                $<lval>$ = $<lval>1 + $<lval>3; 
+                                strcpy(st1[++top],st1[top-1]);
+                                strcpy(st1[++top],"+");
+                                char cpy_temp[50]; 
+                                sprintf(cpy_temp, "%d", $<lval>3);
+                                strcpy(st1[++top],cpy_temp); 
+                                codegen();
+                                }
+                | AddExpr MINUS Term {
+                                $<lval>$ = $<lval>1 - $<lval>3; 
+                                strcpy(st1[++top],st1[top-1]);
+                                strcpy(st1[++top],"-");
+                                char cpy_temp[50]; 
+                                sprintf(cpy_temp, "%d", $<lval>3);
+                                strcpy(st1[++top],cpy_temp);
+                                codegen();
+                                } 
+                | Term          {$<lval>$ = $<lval>1;}
         ;
         
-Term:   Term MUL Factor 
-        {
-                $<ival>$ = $<ival>1 * $<ival>3; 
-                strcpy(st1[++top],st1[top-1]);
-                strcpy(st1[++top],"*");
-                char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", $<ival>3);
-                strcpy(st1[++top],cpy_temp);
-                codegen();
-        } 
-        | Term DIVIDE Factor 
-        {
-                if($<ival>3 == 0)
-                {
-                        printf("Divide by Zero Error\n");
-                        return;
-                }
-                $<ival>$ = $<ival>1 / $<ival>3;
-        } 
-        | Factor 
-        {
-                $<ival>$ = $<ival>1;
-                char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", $<ival>1);
-                strcpy(st1[++top],cpy_temp);
-        }
-        ;
-        
-Factor: OP Expr CP | IDENTIFIER | NUMBER {$<ival>$ = $<ival>1;}
-Assignment  : IDENTIFIER ASSIGN w ST Statement {
-                                                
-                                                int check = update(table,$<str>1,$<void_type>3,scope_ret());
+Term    :       Term MUL Factor {
+                                $<lval>$ = $<lval>1 * $<lval>3; 
+                                strcpy(st1[++top],st1[top-1]);
+                                strcpy(st1[++top],"*");
+                                char cpy_temp[50]; 
+                                sprintf(cpy_temp, "%d", $<lval>3);
+                                strcpy(st1[++top],cpy_temp);
+                                codegen();
+                                } 
+                | Term DIVIDE Factor    {
+                                                if($<lval>3 == 0)
+                                                {
+                                                        printf("Divide by Zero Error\n");
+                                                        return;
                                                 }
-Assignment  : IDENTIFIER ASSIGN w ST  {update(table,$<str>1,$<lval>3,scope_ret());}
+                                                $<lval>$ = $<lval>1 / $<lval>3;
+                                        } 
+                | Factor {
+                        $<lval>$ = $<lval>1;
+                        char cpy_temp[50]; 
+                        sprintf(cpy_temp, "%d", $<lval>1);
+                        strcpy(st1[++top],cpy_temp);
+                        }
         ;
-Expr:     AddExpr LESS_THAN AddExpr  { $<lval>$ = ($<lval>1 < $<lval>3); }
-        | AddExpr LESS_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 <= $<lval>3); }
-        | AddExpr GREATER_THAN AddExpr { $<lval>$ = ($<lval>1 > $<lval>3); }
-        | AddExpr GREATER_OR_EQUAL AddExpr { $<lval>$ = ($<lval>1 >= $<lval>3); }
-        | AddExpr EQUALS AddExpr { $<lval>$ = ($<lval>1 == $<lval>3); }
-        | AddExpr NOT_EQUALS AddExpr { $<lval>$ = ($<lval>1 != $<lval>3); }
-        | AddExpr {$<lval>$ = $<lval>1;}
-        | TRUE { $<lval>$ = 1; }
-        | FALSE { $<lval>$ = 0; }
+
+Factor  :       OP Expr CP 
+                | IDENTIFIER    {
+                                long *value=calloc(1,sizeof(long));
+                                if(fetch(table,$<str>1,value))
+                                        $<lval>$= *value;
+                                } 
+                | NUMBER {$<lval>$ = $<lval>1;}
         ;
-AddExpr: AddExpr PLUS Term {$<lval>$ = $<lval>1 + $<lval>3;} 
-        | AddExpr MINUS Term {$<lval>$ = $<lval>1 - $<lval>3;} 
-        | Term {$<lval>$ = $<lval>1;}
+ForLoop :       FOR IDENTIFIER IN IDENTIFIER OB Statement CB 
         ;
-Term:   Term MUL Factor {$<lval>$ = $<lval>1 * $<lval>3;} 
-        | Term DIVIDE Factor {$<lval>$ = $<lval>1 / $<lval>3;} 
-        | Factor {$<lval>$ = $<lval>1;}
+WhileLoop:      WHILE Expr OB Statement CB 
         ;
-Factor: OP Expr CP 
-        | IDENTIFIER    {
-                        long *value=calloc(1,sizeof(long));
-                        if(fetch(table,$<str>1,value))
-                                $<lval>$= *value;
-                        } 
-        | NUMBER {$<lval>$ = $<lval>1;}
+Break   :       BREAK ST 
         ;
-ForLoop : FOR IDENTIFIER IN IDENTIFIER OB Statement CB 
+Continue:       CONTINUE ST 
         ;
-WhileLoop : WHILE Expr OB Statement CB 
+Print   :       PRINTLN OP STRING c CP ST 
         ;
-Break   : BREAK ST 
+c       :       COM ListVars | /* empty */   
         ;
-Continue   : CONTINUE ST 
-        ;
-Print   : PRINTLN OP STRING c CP ST 
-        ;
-c       : COM ListVars | /* empty */   
-        ;
-ListVars  : IDENTIFIER | ListVars COM IDENTIFIER
+ListVars:       IDENTIFIER | ListVars COM IDENTIFIER
         ;
 %%
 
