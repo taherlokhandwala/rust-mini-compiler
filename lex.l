@@ -57,6 +57,7 @@ GREATER_OR_EQUAL >\=
 LESS_OR_EQUAL <\=
 %%
 \n {;}
+[ ] {;}
 {STMT_TERMINATOR} { return ST;}
 {FN} {return FN;}
 {MAIN} {return MAIN;}

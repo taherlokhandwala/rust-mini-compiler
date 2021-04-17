@@ -19,46 +19,50 @@
                 char *arg2;
                 char *res;
         }quad;
-        int quadlen = 0;
-        quad q[100];
-        char i_[10]="1";
-        char temporary[10]="t";
-        int index1=0,top=0,lnum=0,ltop=0;
+
+        char temporary[10] = "t";
+        char temp_var_number[10] = "1";
+        char stack[1000][100];
+        int top = 0, label_number = 0;
         int label[1000];
-        char st1[1000][100];
+        int quad_table_size = 0;
+        quad quad_table[100];
 
         void push(char *a)
         {
-	        strcpy(st1[++top],a);
+	        strcpy(stack[++top],a);
         }
 
-        void quad_table(char *op, char *arg1, char *arg2, char *res)
+        void insert_quad_table(char *op, char *arg1, char *arg2, char *res)
         {
-                q[quadlen].op = (char*)malloc(sizeof(char)*strlen(op));
-                q[quadlen].arg1 = (char*)malloc(sizeof(char)*strlen(arg1));
-                q[quadlen].arg2 = (char*)malloc(sizeof(char)*strlen(arg1));
-                q[quadlen].res = (char*)malloc(sizeof(char)*strlen(res));
-                strcpy(q[quadlen].op,op);
-                strcpy(q[quadlen].arg1,arg1);
-                strcpy(q[quadlen].arg2,arg2);
-                strcpy(q[quadlen].res,res);
-                quadlen++;
+                quad_table[quad_table_size].op = (char*)malloc(sizeof(char)*strlen(op));
+                quad_table[quad_table_size].arg1 = (char*)malloc(sizeof(char)*strlen(arg1));
+                quad_table[quad_table_size].arg2 = (char*)malloc(sizeof(char)*strlen(arg1));
+                quad_table[quad_table_size].res = (char*)malloc(sizeof(char)*strlen(res));
+                strcpy(quad_table[quad_table_size].op,op);
+                strcpy(quad_table[quad_table_size].arg1,arg1);
+                strcpy(quad_table[quad_table_size].arg2,arg2);
+                strcpy(quad_table[quad_table_size].res,res);
+                quad_table_size++;
         }
 
-        void while_label()
+        void codegen_while()
         {
-                lnum++;
+                label_number++;
                 strcpy(temporary,"t");
-                strcat(temporary,i_);
-                printf("if !%s goto L%d\n",st1[--top],lnum);
+                strcat(temporary,temp_var_number);
+                printf("L%d:\n",label_number);
+                printf("if !%s goto L%d\n",stack[--top],++label_number);
                 char t[20]="L";
                 char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", lnum);
+                sprintf(cpy_temp, "%d", label_number);
                 strcat(t,cpy_temp);
                 strcpy(cpy_temp,"!");
-                quad_table("if",strcat(cpy_temp,st1[top--]),"NULL",t);
-                quad_table("goto","NULL","NULL",t);
-                //i_[0]++;
+                insert_quad_table("if",strcat(cpy_temp,stack[top--]),"NULL",t);
+                strcpy(t,"L"); 
+                sprintf(cpy_temp, "%d", --label_number);
+                strcat(t,cpy_temp);
+                insert_quad_table("goto","NULL","NULL",t);
         }
 
         void codegen()
@@ -66,68 +70,66 @@
                 char value[100]={'\0'};
                 
                 strcpy(temporary,"t");
-                strcat(temporary,i_);
-                strcpy(value,st1[top]);
+                strcat(temporary,temp_var_number);
+                strcpy(value,stack[top]);
                 
-                printf("%s = %s %s %s\n",temporary,st1[top-2],st1[top-1],st1[top]);
-                quad_table(st1[top-1],st1[top-2],st1[top],temporary);
-                //insert(table,temporary,value,"temp","temp",scope_ret());
+                printf("%s = %s %s %s\n",temporary,stack[top-2],stack[top-1],stack[top]);
+                insert_quad_table(stack[top-1],stack[top-2],stack[top],temporary);
                 
                 top-=2;
-                strcpy(st1[top],temporary);
-                i_[0]++;  //i_=2
+                strcpy(stack[top],temporary);
+                temp_var_number[0]++;
 
         }
 
-        void for_label(){
-                lnum++;
+        void codegen_for(){
+                label_number++;
                 strcpy(temporary,"t");
-                strcat(temporary,i_);
-                printf("L%d:\n",lnum);
-                printf("if !%s goto L%d\n",st1[top],++lnum);
-                --lnum;
+                strcat(temporary,temp_var_number);
+                printf("L%d:\n",label_number);
+                printf("if !%s goto L%d\n",stack[top],++label_number);
+                --label_number;
                 char t[20]="L";
                 char cpy_temp[50]; 
-                sprintf(cpy_temp, "%d", ++lnum);
+                sprintf(cpy_temp, "%d", ++label_number);
                 strcat(t,cpy_temp);
                 strcpy(cpy_temp,"!");
-                quad_table("if",strcat(cpy_temp,st1[top]),"NULL",t);
+                insert_quad_table("if",strcat(cpy_temp,stack[top]),"NULL",t);
 
                 strcpy(t,"L"); 
-                sprintf(cpy_temp, "%d", --lnum);
+                sprintf(cpy_temp, "%d", --label_number);
                 strcat(t,cpy_temp);
                 
-                quad_table("goto","NULL","NULL",t);
+                insert_quad_table("goto","NULL","NULL",t);
 
         }
 
         void codegen_rel()
         {
                 strcpy(temporary,"t");
-                strcat(temporary,i_);
-                printf("%s = %s %s %s\n",temporary,st1[top-1],st1[top],st1[top-2]);
+                strcat(temporary,temp_var_number);
+                printf("%s = %s %s %s\n",temporary,stack[top-1],stack[top],stack[top-2]);
                 
-                quad_table(st1[top],st1[top-1],st1[top-2],temporary);
+                insert_quad_table(stack[top],stack[top-1],stack[top-2],temporary);
                 top-=2;
-                strcpy(st1[top],temporary);
-                i_[0]++;  //i_=2
+                strcpy(stack[top],temporary);
+                temp_var_number[0]++;
         }
 
-        void codegen_for(){
+        void codegen_for_iter(){
                 strcpy(temporary,"t");
-                strcat(temporary,i_);
-                printf("%s = %s %s %s\n",temporary,"i","<",st1[top]);
-                insert(table,"i",strtol(st1[top],NULL,0)-1,"Identifier",scope_ret()+1);
-                quad_table("<","i",st1[top--],temporary);
-                strcpy(st1[top],temporary);
-                i_[0]++;
+                strcat(temporary,temp_var_number);
+                printf("%s = %s %s %s\n",temporary,"i","<",stack[top]);
+                insert(table,"i",strtol(stack[top],NULL,0)-1,"Identifier",scope_ret()+1);
+                insert_quad_table("<","i",stack[top--],temporary);
+                strcpy(stack[top],temporary);
+                temp_var_number[0]++;
         }
 
         void codegen_assign()
         {
-                printf("%s = %s\n",st1[top-1],st1[top-2]);
-                quad_table("=",st1[top-2],"NULL",st1[top-1]);
-                //insert(table,st1[top-1],st1[top-2],"temp","temp",scope_ret());
+                printf("%s = %s\n",stack[top-1],stack[top-2]);
+                insert_quad_table("=",stack[top-2],"NULL",stack[top-1]);
                 top-=2;  
         }
         int yyerror(char *msg);
@@ -181,7 +183,7 @@
 %token LOGICAL
 
 %%
-Prog	:       {printf("\n\n---------------Three address code---------------\n");}
+Prog	:       {printf("\nTHREE ADDRESS CODE :\n\n");}
                 FN MAIN OP CP OB Statement CB 
                 { YYACCEPT;} 
         ;
@@ -195,7 +197,7 @@ Statement:      Decl Statement
                 | ST Statement 
                 | /* empty */
         ; 
-Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret()); strcpy(st1[++top],$<str>3); strcpy(st1[++top],"=");
+Decl    :       LET MUT IDENTIFIER COLON Type ASSIGN w ST {insert(table,$<str>3,$<lval>7,"Identifier",scope_ret()); strcpy(stack[++top],$<str>3); strcpy(stack[++top],"=");
                                         codegen_assign();}
         ;
 Type    :       I32 {$<str>$ = $<str>1;}
@@ -212,7 +214,7 @@ Args    :       w
         ;
 Assignment:     IDENTIFIER ASSIGN w ST  {
                                         update(table,$<str>1,$<lval>3,scope_ret());
-                                        strcpy(st1[++top],$<str>1); strcpy(st1[++top],"=");
+                                        strcpy(stack[++top],$<str>1); strcpy(stack[++top],"=");
                                         codegen_assign();
                                         }
         ;
@@ -220,60 +222,60 @@ Expr    :       AddExpr LESS_THAN AddExpr  {
                                                 $<lval>$ = ($<lval>1 < $<lval>3);
                                                 char cpy_temp[50]; 
                                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                                strcpy(st1[++top],cpy_temp);  
+                                                strcpy(stack[++top],cpy_temp);  
                                                 sprintf(cpy_temp, "%d", $<lval>1);
-                                                strcpy(st1[++top],cpy_temp);
-                                                strcpy(st1[++top],"<"); 
+                                                strcpy(stack[++top],cpy_temp);
+                                                strcpy(stack[++top],"<"); 
                                                 codegen_rel(); 
                                            }
                 | AddExpr LESS_OR_EQUAL AddExpr { 
                                                         $<lval>$ = ($<lval>1 <= $<lval>3);
                                                         char cpy_temp[50]; 
                                                         sprintf(cpy_temp, "%d", $<lval>3);
-                                                        strcpy(st1[++top],cpy_temp);  
+                                                        strcpy(stack[++top],cpy_temp);  
                                                         sprintf(cpy_temp, "%d", $<lval>1);
-                                                        strcpy(st1[++top],cpy_temp);
-                                                        strcpy(st1[++top],"<="); 
+                                                        strcpy(stack[++top],cpy_temp);
+                                                        strcpy(stack[++top],"<="); 
                                                         codegen_rel(); 
                                                 }
                 | AddExpr GREATER_THAN AddExpr { 
                                                         $<lval>$ = ($<lval>1 > $<lval>3);
                                                         char cpy_temp[50]; 
                                                         sprintf(cpy_temp, "%d", $<lval>3);
-                                                        strcpy(st1[++top],cpy_temp);  
+                                                        strcpy(stack[++top],cpy_temp);  
                                                         sprintf(cpy_temp, "%d", $<lval>1);
-                                                        strcpy(st1[++top],cpy_temp);
-                                                        strcpy(st1[++top],">"); 
+                                                        strcpy(stack[++top],cpy_temp);
+                                                        strcpy(stack[++top],">"); 
                                                         codegen_rel(); 
                                                 }
                 | AddExpr GREATER_OR_EQUAL AddExpr { 
                                                         $<lval>$ = ($<lval>1 >= $<lval>3); 
                                                         char cpy_temp[50]; 
                                                         sprintf(cpy_temp, "%d", $<lval>3);
-                                                        strcpy(st1[++top],cpy_temp);  
+                                                        strcpy(stack[++top],cpy_temp);  
                                                         sprintf(cpy_temp, "%d", $<lval>1);
-                                                        strcpy(st1[++top],cpy_temp);
-                                                        strcpy(st1[++top],">="); 
+                                                        strcpy(stack[++top],cpy_temp);
+                                                        strcpy(stack[++top],">="); 
                                                         codegen_rel();
                                                    }
                 | AddExpr EQUALS AddExpr { 
                                                 $<lval>$ = ($<lval>1 == $<lval>3);
                                                 char cpy_temp[50]; 
                                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                                strcpy(st1[++top],cpy_temp);  
+                                                strcpy(stack[++top],cpy_temp);  
                                                 sprintf(cpy_temp, "%d", $<lval>1);
-                                                strcpy(st1[++top],cpy_temp);
-                                                strcpy(st1[++top],"=="); 
+                                                strcpy(stack[++top],cpy_temp);
+                                                strcpy(stack[++top],"=="); 
                                                 codegen_rel(); 
                                          }
                 | AddExpr NOT_EQUALS AddExpr { 
                                                 $<lval>$ = ($<lval>1 != $<lval>3);
                                                 char cpy_temp[50]; 
                                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                                strcpy(st1[++top],cpy_temp);  
+                                                strcpy(stack[++top],cpy_temp);  
                                                 sprintf(cpy_temp, "%d", $<lval>1);
-                                                strcpy(st1[++top],cpy_temp);
-                                                strcpy(st1[++top],"!="); 
+                                                strcpy(stack[++top],cpy_temp);
+                                                strcpy(stack[++top],"!="); 
                                                 codegen_rel(); 
                                              }
                 | AddExpr {$<lval>$ = $<lval>1;}
@@ -282,20 +284,20 @@ Expr    :       AddExpr LESS_THAN AddExpr  {
         ;
 AddExpr :       AddExpr PLUS Term {
                                 $<lval>$ = $<lval>1 + $<lval>3; 
-                                strcpy(st1[++top],st1[top-1]);
-                                strcpy(st1[++top],"+");
+                                strcpy(stack[++top],stack[top-1]);
+                                strcpy(stack[++top],"+");
                                 char cpy_temp[50]; 
                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                strcpy(st1[++top],cpy_temp); 
+                                strcpy(stack[++top],cpy_temp); 
                                 codegen();
                                 }
                 | AddExpr MINUS Term {
                                 $<lval>$ = $<lval>1 - $<lval>3; 
-                                strcpy(st1[++top],st1[top-1]);
-                                strcpy(st1[++top],"-");
+                                strcpy(stack[++top],stack[top-1]);
+                                strcpy(stack[++top],"-");
                                 char cpy_temp[50]; 
                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                strcpy(st1[++top],cpy_temp);
+                                strcpy(stack[++top],cpy_temp);
                                 codegen();
                                 } 
                 | Term          {$<lval>$ = $<lval>1;}
@@ -303,11 +305,11 @@ AddExpr :       AddExpr PLUS Term {
         
 Term    :       Term MUL Factor {
                                 $<lval>$ = $<lval>1 * $<lval>3; 
-                                strcpy(st1[++top],st1[top-1]);
-                                strcpy(st1[++top],"*");
+                                strcpy(stack[++top],stack[top-1]);
+                                strcpy(stack[++top],"*");
                                 char cpy_temp[50]; 
                                 sprintf(cpy_temp, "%d", $<lval>3);
-                                strcpy(st1[++top],cpy_temp);
+                                strcpy(stack[++top],cpy_temp);
                                 codegen();
                                 } 
                 | Term DIVIDE Factor    {
@@ -322,7 +324,7 @@ Term    :       Term MUL Factor {
                         $<lval>$ = $<lval>1;
                         char cpy_temp[50]; 
                         sprintf(cpy_temp, "%d", $<lval>1);
-                        strcpy(st1[++top],cpy_temp);
+                        strcpy(stack[++top],cpy_temp);
                         }
         ;
 
@@ -340,15 +342,18 @@ Factor  :       OP Expr CP
 ForLoop :       FOR IDENTIFIER IN RANGE OP NUMBER CP {
                         char cpy_temp[50]; 
                         sprintf(cpy_temp, "%d", $<lval>6);
-                        strcpy(st1[++top],cpy_temp);
+                        strcpy(stack[++top],cpy_temp);
+                        codegen_for_iter();
                         codegen_for();
-                        for_label();
                         } OB Statement CB       {
-                                                printf("goto L%d\n",lnum);
-                                                printf("L%d:\n",++lnum);
+                                                printf("goto L%d\n",label_number);
+                                                printf("L%d:\n",++label_number);
                                                 }
         ;
-WhileLoop:      WHILE Expr {while_label();} OB Statement CB 
+WhileLoop:      WHILE Expr {codegen_while();} OB Statement CB {
+                                                                printf("goto L%d\n",label_number);
+                                                                printf("L%d:\n",++label_number);
+                                                            }
         ;
 Break   :       BREAK ST 
         ;
@@ -372,20 +377,20 @@ int main(int argc, char *argv[])
 	yyin = fopen(argv[1], "r");
 
 	if(!yyparse()){
-		printf("\nParsing complete\n");
-                printf("----------------------Quadruples----------------------\n\n");
-                printf("Operator \t Arg1 \t\t Arg2 \t\t Result \n");
+		printf("\n\nPARSING COMPLETE\n\n");
+                printf("QUADRUPLES :\n\n");
+                printf("Operator \t Argument 1 \t Argument 2 \t Result \n");
                 int i;
-                for(i=0;i<quadlen;i++)
+                for(i=0;i<quad_table_size;i++)
                 {
-                        printf("%-8s \t %-8s \t %-8s \t %-6s      \n",q[i].op,q[i].arg1,q[i].arg2,q[i].res);
+                        printf("%-8s \t %-8s \t %-8s \t %-6s      \n",quad_table[i].op,quad_table[i].arg1,quad_table[i].arg2,quad_table[i].res);
                 }
                 printf("\n\n");
-                printf("\n\tSymbol table");
+                printf("SYMBOL TABLE");
 	        display(table);
 	}
 	else{
-		printf("\nParsing failed\n");
+		printf("\nPARSING FAILED\n");
 	}
 
 	fclose(yyin);

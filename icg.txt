@@ -1,0 +1,26 @@
+b = 10
+c = 1
+t1 = b>7
+if False t0 goto L0
+t2 = 2 < 5
+if False t1 goto L1
+t3 = 4 * 3
+t8 = b * c
+b = t2
+L1:
+t4 = 2 * c
+b = t4
+L0:
+a = 4
+x = 9
+L2:
+t5 = a > 1
+t05 = a < 10
+t11 = t2
+t9 = 2 < 5
+if False t5 goto L3
+if False t05 goto L3
+t7 = c + 1
+c = t7
+L3:
+exit
