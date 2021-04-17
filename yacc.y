@@ -45,7 +45,7 @@
                 quadlen++;
         }
 
-        void f2()
+        void while_label()
         {
                 lnum++;
                 strcpy(temporary,"t");
@@ -79,6 +79,28 @@
 
         }
 
+        void for_label(){
+                lnum++;
+                strcpy(temporary,"t");
+                strcat(temporary,i_);
+                printf("L%d:\n",lnum);
+                printf("if !%s goto L%d\n",st1[top],++lnum);
+                --lnum;
+                char t[20]="L";
+                char cpy_temp[50]; 
+                sprintf(cpy_temp, "%d", ++lnum);
+                strcat(t,cpy_temp);
+                strcpy(cpy_temp,"!");
+                quad_table("if",strcat(cpy_temp,st1[top]),"NULL",t);
+
+                strcpy(t,"L"); 
+                sprintf(cpy_temp, "%d", --lnum);
+                strcat(t,cpy_temp);
+                
+                quad_table("goto","NULL","NULL",t);
+
+        }
+
         void codegen_rel()
         {
                 strcpy(temporary,"t");
@@ -89,6 +111,16 @@
                 top-=2;
                 strcpy(st1[top],temporary);
                 i_[0]++;  //i_=2
+        }
+
+        void codegen_for(){
+                strcpy(temporary,"t");
+                strcat(temporary,i_);
+                printf("%s = %s %s %s\n",temporary,"i","<",st1[top]);
+                insert(table,"i",strtol(st1[top],NULL,0)-1,"Identifier",scope_ret()+1);
+                quad_table("<","i",st1[top--],temporary);
+                strcpy(st1[top],temporary);
+                i_[0]++;
         }
 
         void codegen_assign()
@@ -114,6 +146,7 @@
 %token FOR 
 %token IN 
 %token WHILE 
+%token RANGE
 %token LET
 %token MUT 
 %token TRUE 
@@ -304,9 +337,18 @@ Factor  :       OP Expr CP
                                 $<lval>$ = $<lval>1;
                          }
         ;
-ForLoop :       FOR IDENTIFIER IN IDENTIFIER OB Statement CB 
+ForLoop :       FOR IDENTIFIER IN RANGE OP NUMBER CP {
+                        char cpy_temp[50]; 
+                        sprintf(cpy_temp, "%d", $<lval>6);
+                        strcpy(st1[++top],cpy_temp);
+                        codegen_for();
+                        for_label();
+                        } OB Statement CB       {
+                                                printf("goto L%d\n",lnum);
+                                                printf("L%d:\n",++lnum);
+                                                }
         ;
-WhileLoop:      WHILE Expr {f2();} OB Statement CB 
+WhileLoop:      WHILE Expr {while_label();} OB Statement CB 
         ;
 Break   :       BREAK ST 
         ;

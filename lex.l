@@ -21,6 +21,7 @@ IN in
 WHILE while
 LET let
 MUT mut
+RANGE range
 TRUE true
 FALSE false
 PRINTLN println!
@@ -85,6 +86,7 @@ LESS_OR_EQUAL <\=
 {IN} {return IN;}
 {LET} {return LET;}
 {MUT} {return MUT;}
+{RANGE} {return RANGE;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
 {I32} {yylval.str = strdup(yytext);return I32;}
