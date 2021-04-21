@@ -3,17 +3,17 @@ fn main(){
     let mut a: i32 = 5;
     let mut b: i32 = 6;
 	println!("Hello");
-	println!("HI",a,b);
-	let mut c: str = "Hi";
-    let mut d: i32 = [1,2,3,4,5];
+	println!("HI");
 
     while a < 10 {
         println!("{}",a);
         a=10+10;
         let mut e: i32 = 10;
     }
+    
+    e = 24;
 
-    for i in d {
+    for i in range(10) {
         println!("{}",i);
     }
 }

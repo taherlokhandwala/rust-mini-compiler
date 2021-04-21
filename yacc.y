@@ -52,7 +52,7 @@
                 strcpy(temporary,"t");
                 strcat(temporary,temp_var_number);
                 printf("L%d:\n",label_number);
-                printf("if !%s goto L%d\n",stack[--top],++label_number);
+                printf("if !%s goto L%d\n",stack[top],++label_number);
                 char t[20]="L";
                 char cpy_temp[50]; 
                 sprintf(cpy_temp, "%d", label_number);
