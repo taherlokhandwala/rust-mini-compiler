@@ -213,6 +213,17 @@ Args    :       w
                 | Args COM w
         ;
 Assignment:     IDENTIFIER ASSIGN w ST  {
+                                        int temp_scope = get_scope(table,$<str>1);
+                                        if(temp_scope == 0)
+                                        {
+                                          yyerror("Assignment before Declaration");
+                                          return;      
+                                        } 
+                                        else if(temp_scope > scope_ret()) 
+                                        {
+                                                yyerror("Out of Scope error");
+                                                return;
+                                        }
                                         update(table,$<str>1,$<lval>3,scope_ret());
                                         strcpy(stack[++top],$<str>1); strcpy(stack[++top],"=");
                                         codegen_assign();
@@ -300,7 +311,9 @@ AddExpr :       AddExpr PLUS Term {
                                 strcpy(stack[++top],cpy_temp);
                                 codegen();
                                 } 
-                | Term          {$<lval>$ = $<lval>1;}
+                | Term          {
+                                        $<lval>$ = $<lval>1;
+                                }
         ;
         
 Term    :       Term MUL Factor {
@@ -315,10 +328,16 @@ Term    :       Term MUL Factor {
                 | Term DIVIDE Factor    {
                                                 if($<lval>3 == 0)
                                                 {
-                                                        printf("Divide by Zero Error\n");
+                                                        yyerror("Divide by Zero Error");
                                                         return;
                                                 }
                                                 $<lval>$ = $<lval>1 / $<lval>3;
+                                                strcpy(stack[++top],stack[top-1]);
+                                                strcpy(stack[++top],"/");
+                                                char cpy_temp[50]; 
+                                                sprintf(cpy_temp, "%d", $<lval>3);
+                                                strcpy(stack[++top],cpy_temp);
+                                                codegen();
                                         } 
                 | Factor {
                         $<lval>$ = $<lval>1;
@@ -398,6 +417,6 @@ int main(int argc, char *argv[])
 }
 
 int yyerror(char *msg){
-	//printf("Line no: %d Error message: %s Token: %s\n", yylineno, msg, yytext);
-	return 0;
+	printf("Error message: %s\n", msg);
+        return 0;
 }
