@@ -48,8 +48,6 @@
 
         void codegen_while()
         {
-                label_number++;
-                printf("L%d:\n",label_number);
                 strcpy(temporary,"t");
                 strcat(temporary,temp_var_number);
                 printf("if !%s goto L%d\n",stack[top],++label_number);
@@ -108,6 +106,8 @@
         {
                 strcpy(temporary,"t");
                 strcat(temporary,temp_var_number);
+                label_number++;
+                printf("L%d:\n",label_number);
                 printf("%s = %s %s %s\n",temporary,stack[top-1],stack[top],stack[top-2]);
                 
                 insert_quad_table(stack[top],stack[top-1],stack[top-2],temporary);
