@@ -19,7 +19,6 @@ t05 = a < 10
 t11 = t2
 t9 = 2 < 5
 if False t5 goto L3
-if False t05 goto L3
 t7 = c + 1
 c = t7
 L3:
