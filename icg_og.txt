@@ -1,0 +1,30 @@
+a = 5
+b = 6
+L1:
+t1 = 5 < 10
+if ! t1 goto L2
+t2 = 5 + 1
+a = t2
+t3 = 5 + 10
+b = t3
+e = 10
+t4 = 10 * 5
+e = t4
+t5 = 5 + 10
+b = t5
+goto L1
+L2:
+t6 = i < 10
+if ! t6 goto L3
+i=i+1
+goto L2
+L3:
+c = 10
+L4:
+t7 = 6 < 10
+if ! t7 goto L5
+t8 = 6 + 1
+a = t8
+goto L4
+L5:
+exit

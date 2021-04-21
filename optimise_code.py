@@ -32,31 +32,17 @@ def eval_wrap(line):
         return line
     if tokens[1] != "=" or tokens[3] not in binary_operators:
         return line
-    if tokens[2].isdigit() and tokens[4].isdigit():
-        result = eval(str(tokens[2] + tokens[3] + tokens[4]))
-        return " ".join([tokens[0], tokens[1], str(result)])
-    if tokens[2].isdigit() or tokens[4].isdigit():
-        op1 = "1" if isid(tokens[2]) else tokens[2]
-        op2 = "1" if isid(tokens[4]) else tokens[4]
-        op = tokens[3]
-        try:
-            result = int(eval(op1+op+op2))
-            if result == 0:
-                return " ".join([tokens[0], tokens[1], "0"])
-            elif result == 1:
-                if isid(tokens[2]) and tokens[4].isdigit():
-                    return " ".join([tokens[0], tokens[1], tokens[2]])
-                elif isid(tokens[4]) and tokens[2].isdigit():
-                    return " ".join([tokens[0], tokens[1], tokens[4]])
-            elif result == -1 and tokens[2] == "0":
-                return " ".join([tokens[0], tokens[1], "-"+tokens[4]])
-            return " ".join(tokens)
-
-        except NameError:
-            return line
-        except ZeroDivisionError:
+    try:
+        if tokens[3] == '/' and tokens[4] == "0":
             print("Division By Zero is undefined")
             quit()
+        elif tokens[2].isdigit() and tokens[4].isdigit():
+            result = int(eval(str(tokens[2] + tokens[3] + tokens[4])))
+            return " ".join([tokens[0], tokens[1], str(result)])
+
+        return " ".join(tokens)
+    except NameError:
+        return line
     return line
 
 
@@ -85,6 +71,7 @@ def remove_dead_code(list_of_lines):
             if istemp(tokens[2]):
                 useful_temps.add(tokens[2])
     temps_to_remove = temps_on_lhs - useful_temps
+
     new_list_of_lines = []
     for line in list_of_lines:
         tokens = line.split()
@@ -113,7 +100,7 @@ def make_subexpression_dict(list_of_lines):
 
 def eliminate_common_subexpressions(list_of_lines):
     expressions = make_subexpression_dict(list_of_lines)
-    print(expressions)
+    # print(expressions)
     lines = len(list_of_lines)
     new_list_of_lines = list_of_lines[:]
     for i in range(lines):
