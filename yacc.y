@@ -49,9 +49,9 @@
         void codegen_while()
         {
                 label_number++;
+                printf("L%d:\n",label_number);
                 strcpy(temporary,"t");
                 strcat(temporary,temp_var_number);
-                printf("L%d:\n",label_number);
                 printf("if !%s goto L%d\n",stack[top],++label_number);
                 char t[20]="L";
                 char cpy_temp[50]; 
@@ -83,10 +83,10 @@
         }
 
         void codegen_for(){
-                label_number++;
+                label_number;
                 strcpy(temporary,"t");
                 strcat(temporary,temp_var_number);
-                printf("L%d:\n",label_number);
+                //printf("L%d:\n",label_number);
                 printf("if !%s goto L%d\n",stack[top],++label_number);
                 --label_number;
                 char t[20]="L";
@@ -185,7 +185,7 @@
 %%
 Prog	:       {printf("\nTHREE ADDRESS CODE :\n\n");}
                 FN MAIN OP CP OB Statement CB 
-                { YYACCEPT;} 
+                {printf("exit\n"); YYACCEPT;} 
         ;
 Statement:      Decl Statement 
                 | Assignment Statement 
@@ -365,6 +365,7 @@ ForLoop :       FOR IDENTIFIER IN RANGE OP NUMBER CP {
                         codegen_for_iter();
                         codegen_for();
                         } OB Statement CB       {
+                                                printf("i=i+1\n");
                                                 printf("goto L%d\n",label_number);
                                                 printf("L%d:\n",++label_number);
                                                 }
