@@ -418,6 +418,6 @@ int main(int argc, char *argv[])
 }
 
 int yyerror(char *msg){
-	printf("Error message: %s\n", msg);
+	printf("\n\nLine number: %d\nError message: %s\n", line_no ,msg);
         return 0;
 }

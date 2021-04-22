@@ -1,7 +1,6 @@
 fn main(){
     let mut a: i32 = 5;
     let mut b: i32 = 6;
-    
     while a < 10 {
         println!("{}",a);
         a=a+1;

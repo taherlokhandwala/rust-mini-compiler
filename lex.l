@@ -6,7 +6,7 @@
     #include<stdlib.h>
 
     int yyerror(char *s);
-    int line_no = 1;
+    int line_no = 0;
     int scope = 0;
     int scope_ret(){
         return scope;
@@ -56,7 +56,7 @@ LESS_THAN <
 GREATER_OR_EQUAL >\=
 LESS_OR_EQUAL <\=
 %%
-\n {;}
+\n {line_no++;}
 [ ] {;}
 {STMT_TERMINATOR} { return ST;}
 {FN} {return FN;}
