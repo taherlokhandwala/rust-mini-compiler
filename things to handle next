@@ -2,3 +2,10 @@
 2. error handling: if there is a declaration such as 1a = 5, a=5 should be added to the table, and it should show error, and continue 
 3. symbol table should print regardless of error
 4. what ate the valid statements in the while construct
+
+4. Add update function
+5. add line number(keep track which line something belongs)
+6. expresion evaluation ($$ = $1 + $3). Maybe split the operations to make this easier. Insert this into symtab
+7. 3 address code generation. Make sure to add temp vars to symtab as well.
+8. quadruple table generation: ez pz
+9. Optimizations remove dead code, looping invariant code (code that doesn't change in loop), constant folding (if t1 = a + 1 and a = t1, then make it a=a+1), constant propagation(if a=3,b=a+1,c=a+3, then instead of creating 2 different temporaries for b and c, use the same temp created for b in c)  

@@ -1,14 +1,16 @@
 %option noyywrap
 %{
-#include <stdio.h>
-#include "y.tab.h"
-#include<string.h>
-#include<stdlib.h>
-int yyerror(char *s);
-int scope = 0;
-int scope_ret(){
-    return scope;
-}
+    #include<stdio.h>
+    #include"y.tab.h"
+    #include<string.h>
+    #include<stdlib.h>
+
+    int yyerror(char *s);
+    int line_no = 0;
+    int scope = 0;
+    int scope_ret(){
+        return scope;
+    }
 %}
 FN fn
 MAIN main
@@ -19,6 +21,7 @@ IN in
 WHILE while
 LET let
 MUT mut
+RANGE range
 TRUE true
 FALSE false
 PRINTLN println!
@@ -53,7 +56,8 @@ LESS_THAN <
 GREATER_OR_EQUAL >\=
 LESS_OR_EQUAL <\=
 %%
-\n {;}
+\n {line_no++;}
+[ ] {;}
 {STMT_TERMINATOR} { return ST;}
 {FN} {return FN;}
 {MAIN} {return MAIN;}
@@ -61,7 +65,7 @@ LESS_OR_EQUAL <\=
 {CLOSE_BLOCK} {scope--;return CB;}
 {OPEN_PARANTHESIS} {return OP;}
 {CLOSE_PARANTHESIS} {return CP;}
-{OPEN_SQUARE} {char *s = "Array Pointer"; yylval = s; return OS;}
+{OPEN_SQUARE} {char *s = "Array Pointer"; yylval.str = strdup(s); return OS;}
 {CLOSE_SQUARE} {return CS;}
 {COMMA} {return COM;}
 {COLON} {return COLON;}
@@ -79,15 +83,16 @@ LESS_OR_EQUAL <\=
 {DIVIDE} {return DIVIDE;}
 {BREAK} {return BREAK;}
 {CONTINUE} {return CONTINUE;}
-{FOR} {return FOR;}
+{FOR} {return FOR;} 
 {IN} {return IN;}
 {LET} {return LET;}
 {MUT} {return MUT;}
+{RANGE} {return RANGE;}
 {WHILE} {return WHILE;}
 {PRINTLN} {return PRINTLN;}
-{I32} {yylval = strdup(yytext);return I32;}
-{F32} {yylval = strdup(yytext);return F32;}
-{STR} {yylval = strdup(yytext);return STR;}
-{IDENTIFIER} {yylval = strdup(yytext);return IDENTIFIER;}
-{NUMBER} {yylval = strdup(yytext);return NUMBER;}
-{STRING} {yylval = strdup(yytext);return STRING;}
+{I32} {yylval.str = strdup(yytext);return I32;}
+{F32} {yylval.str = strdup(yytext);return F32;}
+{STR} {yylval.str = strdup(yytext);return STR;}
+{IDENTIFIER} {yylval.str = strdup(yytext);return IDENTIFIER;}
+{NUMBER} {yylval.lval = strtol(yytext,NULL,0);return NUMBER;}
+{STRING} {yylval.str = strdup(yytext);return STRING;}
